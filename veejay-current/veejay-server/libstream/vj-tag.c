@@ -1,4 +1,4 @@
-/* 
+/*
  * Linux VeeJay
  *
  * Copyright(C)2002-2004 Niels Elburg <nwelburg@gmail.com>
@@ -95,7 +95,7 @@ typedef struct
 	double	mean[3];
 } cali_tag_t;
 
-#define CALI_DARK 0 
+#define CALI_DARK 0
 #define CALI_LIGHT 1
 #define CALI_FLAT 2
 #define CALI_BUF 4
@@ -129,7 +129,7 @@ void	vj_tag_free(void)
 			free( _temp_buffer[i] );
 		_temp_buffer[i] = NULL;
 	}
-	
+
 	vj_tag_close_all();
 
 	if( vj_tag_input)
@@ -251,7 +251,7 @@ char *vj_tag_scan_devices( void )
 	char *n = (char*) vj_calloc(sizeof(char) * (16 + len) );
 	char *p = n + 6;
 
-	sprintf(n, "%06d", len );	
+	sprintf(n, "%06d", len );
 	for( i = 0; device_list[i] != NULL ;i++ )
 	{
 		char tmp[1024];
@@ -301,14 +301,14 @@ int vj_tag_init(int width, int height, int pix_fmt, int video_driver)
    _temp_buffer[0] = (uint8_t*) vj_malloc(sizeof(uint8_t)*width*height);
    _temp_buffer[1] = (uint8_t*) vj_malloc(sizeof(uint8_t)*width*height);
    _temp_buffer[2] = (uint8_t*) vj_malloc(sizeof(uint8_t)*width*height);
-		
+
 	memset( tag_cache,0,sizeof(tag_cache));
 	memset( avail_tag, 0, sizeof(avail_tag));
-	_tmp.uv_width = width; 
+	_tmp.uv_width = width;
 	_tmp.uv_height = height/2;
 	_tmp.uv_len = width * (height/2);
 
-#ifdef HAVE_V4L 
+#ifdef HAVE_V4L
 	v4lvideo_templ_init();
 #endif
 
@@ -348,7 +348,7 @@ int _vj_tag_new_net(vj_tag *tag, int stream_nr, int w, int h,int f, char *host, 
 
 /*	vj_tag_input->net[stream_nr] = vj_client_alloc(w,h,f);
 	v = vj_tag_input->net[stream_nr];
-	if(!v) 
+	if(!v)
 	{
 		veejay_msg(0, "Memory allocation error while creating network stream");
 		return 0;
@@ -360,7 +360,7 @@ int _vj_tag_new_net(vj_tag *tag, int stream_nr, int w, int h,int f, char *host, 
 	{
 		tag->socket_frame = (uint8_t*) vj_calloc(sizeof(uint8_t) * RUP8( w * h * 3));
 		tag->socket_len = w * h * 3;
-		if(!tag->socket_frame) 
+		if(!tag->socket_frame)
 		{
 			veejay_msg(VEEJAY_MSG_ERROR, "Insufficient error to allocate memory for Network Stream");
 			return 0;
@@ -373,7 +373,7 @@ int _vj_tag_new_net(vj_tag *tag, int stream_nr, int w, int h,int f, char *host, 
 #ifdef HAVE_V4L
 static struct {
 	const char *name;
-} video_norm_[] = 
+} video_norm_[] =
 {
 	{"pal"},
 	{"ntsc"},
@@ -390,7 +390,7 @@ int _vj_tag_new_unicap( vj_tag * tag, int stream_nr, int width, int height, int 
 	{
 		return 0;
 	}
-	
+
 	snprintf(refname,sizeof(refname), "/dev/video%d",device_num ); // freq->device_num
 #ifdef HAVE_V4L
 	const char *selected_video_norm = video_norm_[2].name
@@ -398,19 +398,19 @@ int _vj_tag_new_unicap( vj_tag * tag, int stream_nr, int width, int height, int 
 		case 'P':
 		case 'p':
 			selected_video_norm = video_norm_[0].name; break;
-		case 'n': case 'N':	
+		case 'n': case 'N':
 			selected_video_norm = video_norm_[1].name; break;
 		default:
 			break;//auto
 	}
 #endif
-	
+
 	tag->capture_type = driver;
 	veejay_msg(VEEJAY_MSG_INFO, "Open capture device with %s",
 	  ( driver == 1 ? "v4l[x]"  : "Unicap" ) );
 	if( tag->capture_type == 1 )  {
 #ifdef HAVE_V4L
-   		vj_tag_input->unicap[stream_nr] = v4lvideo_init( refname, channel, 
+   		vj_tag_input->unicap[stream_nr] = v4lvideo_init( refname, channel,
 			v4lvideo_templ_get_norm( selected_video_norm ),
 			freq,
 			width, height, palette );
@@ -438,8 +438,8 @@ int _vj_tag_new_unicap( vj_tag * tag, int stream_nr, int width, int height, int 
 		tag->extra = strdup(refname);
 #endif
 		return 1;
-	} 
-	
+	}
+
 	return 1;
 }
 
@@ -472,7 +472,7 @@ uint8_t		*vj_tag_get_cali_buffer(int t1, int type, int *total, int *plane, int *
 	vj_tag *tag = vj_tag_get(t1);
 	if(!tag)
 		return NULL;
-	
+
 	int 	w	=	vj_tag_input->width;
 	int	h	=	vj_tag_input->height;
 	int	len	=	(w*h);
@@ -516,7 +516,7 @@ static	int	cali_write_file( char *file, vj_tag *tag , editlist *el)
 	if( fwrite( fileheader,strlen(fileheader),1, f ) <= 0 ) {
 		veejay_msg(0 ,"Error while writing file header.");
 		return 0;
-	}	
+	}
 	int n = 0;
 
 	//@ write dark current frame
@@ -547,7 +547,7 @@ CALIERR:
 	fclose(f);
 	veejay_msg(0, "File write error.");
 
-	
+
 	return 0;
 }
 
@@ -650,7 +650,7 @@ CALIREADERR:
 int	_vj_tag_new_cali( vj_tag *tag, int stream_nr, int w, int h )
 {
 	if(stream_nr < 0 || stream_nr > VJ_TAG_MAX_STREAM_IN) return 0;
-	
+
 	cali_tag_t *p = NULL;
 
 	p = (cali_tag_t*) vj_malloc(sizeof(cali_tag_t));
@@ -663,11 +663,11 @@ int	_vj_tag_new_cali( vj_tag *tag, int stream_nr, int w, int h )
 		free(p);
 		return 0;
 	}
-	
+
 	vj_tag_input->cali[stream_nr] = (void*)p;
-	
+
 	veejay_msg(VEEJAY_MSG_INFO, "Image Cailbration files ready.");
-	
+
 	return 1;
 }
 
@@ -695,7 +695,7 @@ int _vj_tag_new_yuv4mpeg(vj_tag * tag, int stream_nr, int w, int h, float fps)
 	return 0;
     vj_tag_input->stream[stream_nr] = vj_yuv4mpeg_alloc(w, h, fps, _tag_info->pixel_format);
 
-    if(vj_tag_input->stream[stream_nr] == NULL) 
+    if(vj_tag_input->stream[stream_nr] == NULL)
 	return 0;
 
     if(vj_yuv_stream_start_read(vj_tag_input->stream[stream_nr],tag->source_name,w,h ) != 0 )
@@ -715,7 +715,7 @@ int	_vj_tag_new_dv1394(vj_tag *tag, int stream_nr, int channel,int quality, edit
 	veejay_msg(VEEJAY_MSG_INFO, "DV1394 ready for capture");
 //	vj_dv_decoder_set_audio( vj_tag_input->dv1394[stream_nr], el->has_audio);
 	return 1;
-   } 
+   }
    return 0;
 }
 #endif
@@ -758,10 +758,10 @@ int	vj_tag_set_stream_color(int t1, int r, int g, int b)
     vj_tag *tag = vj_tag_get(t1);
     if(!tag)
 	return 0;
-	
+
 	veejay_msg(VEEJAY_MSG_DEBUG,"Set stream %d color %d,%d,%d",t1,
 		r,g, b );
- 
+
     tag->color_r = r;
     tag->color_g = g;
     tag->color_b = b;
@@ -776,7 +776,7 @@ int	vj_tag_set_stream_color(int t1, int r, int g, int b)
 }
 
 int	vj_tag_get_composite(int t1)
-{	
+{
 	vj_tag *tag = vj_tag_get(t1);
 	if(!tag) return 0;
 	return tag->composite;
@@ -826,7 +826,7 @@ int vj_tag_new(int type, char *filename, int stream_nr, editlist * el,
     float fps = _tag_info->effect_frame1->fps;
 
     vj_tag *tag;
-  
+
     if( this_tag_id == 0)
 	{
 		this_tag_id = 1; // first tag
@@ -845,7 +845,7 @@ int vj_tag_new(int type, char *filename, int stream_nr, editlist * el,
   	if(!tag)
 	{
 		veejay_msg(0, "Memory allocation error");
-		return -1; 
+		return -1;
 	}
 
     tag->source_name = (char *) vj_calloc(sizeof(char) * 255);
@@ -876,14 +876,14 @@ int vj_tag_new(int type, char *filename, int stream_nr, editlist * el,
         }
     }
 
-         
-    if(id==0) { 
+
+    if(id==0) {
 		tag->id = this_tag_id;
 	}
     else {
 		tag->id = id;
 	}
-   
+
 	tag->extra = NULL;
     tag->next_id = 0;
     tag->nframes = 0;
@@ -930,7 +930,7 @@ int vj_tag_new(int type, char *filename, int stream_nr, editlist * el,
     switch (type) {
 	    case VJ_TAG_TYPE_V4L:
 		sprintf(tag->source_name, "%s", filename );
-		
+
 		veejay_msg(VEEJAY_MSG_DEBUG, "V4l: %s",filename);
 
 /*
@@ -983,7 +983,7 @@ int _vj_tag_new_unicap( vj_tag * tag, int stream_nr, int width, int height, int 
 #endif
     case VJ_TAG_TYPE_CALI:
 	sprintf(tag->source_name,"%s",filename);
-	if(_vj_tag_new_cali( tag,stream_nr,w,h) != 1 ) 
+	if(_vj_tag_new_cali( tag,stream_nr,w,h) != 1 )
 		return -1;
 	break;
     case VJ_TAG_TYPE_YUV4MPEG:
@@ -1003,7 +1003,7 @@ int _vj_tag_new_unicap( vj_tag * tag, int stream_nr, int width, int height, int 
 	if( channel == -1 && filename == NULL ) {
 		int total = 0;
 		int agen = plug_find_generator_plugins( &total, 0 );
-		
+
 		if( agen >= 0 ) {
 			channel = agen;
 		}
@@ -1025,11 +1025,11 @@ int _vj_tag_new_unicap( vj_tag * tag, int stream_nr, int width, int height, int 
 
 		int foo_arg  = vj_shm_get_id();
 
-		if( extra != 0 ) //@ vj_shm_set_id is a hack 
+		if( extra != 0 ) //@ vj_shm_set_id is a hack
 			vj_shm_set_id( extra );
 
 		tag->generator = plug_activate(channel);
-		
+
 		if(tag->generator != NULL) {
 			vj_shm_set_id( foo_arg );
 
@@ -1057,11 +1057,11 @@ int _vj_tag_new_unicap( vj_tag * tag, int stream_nr, int width, int height, int 
 
 	sprintf(tag->source_name, "[%d,%d,%d]",
 		tag->color_r,tag->color_g,tag->color_b );
-/*	
+/*
 	if( channel == -1 ) {
 		int total = 0;
 		int agen = plug_find_generator_plugins( &total, 0 );
-		
+
 		if( agen >= 0 ) {
 			char *plugname = plug_get_name( agen );
 			channel = agen;
@@ -1072,7 +1072,7 @@ int _vj_tag_new_unicap( vj_tag * tag, int stream_nr, int width, int height, int 
 			veejay_msg(VEEJAY_MSG_WARNING, "No generator plugins found. Using built-in.");
 		}
 	}
-	
+
 	if( channel >= 0 ) {
 		tag->generator = plug_activate( channel );
 		if( tag->generator ) {
@@ -1119,7 +1119,7 @@ int _vj_tag_new_unicap( vj_tag * tag, int stream_nr, int width, int height, int 
 		tag->effect_chain[i]->a_flag = 0;
 		tag->effect_chain[i]->channel = 0;
 		tag->effect_chain[i]->source_type = 1;
-		tag->effect_chain[i]->is_rendering = 0; 
+		tag->effect_chain[i]->is_rendering = 0;
 		for (j = 0; j < SAMPLE_MAX_PARAMETERS; j++) {
 		    tag->effect_chain[i]->arg[j] = 0;
 		}
@@ -1127,12 +1127,12 @@ int _vj_tag_new_unicap( vj_tag * tag, int stream_nr, int width, int height, int 
 		tag->effect_chain[i]->kf_type = 0;
 		tag->effect_chain[i]->kf = vpn( VEVO_ANONYMOUS_PORT );
     }
-    if (!vj_tag_put(tag))	
+    if (!vj_tag_put(tag))
 	{
 		veejay_msg(0, "Unable to store stream");
 		return -1;
 	}
-    last_added_tag = tag->id; 
+    last_added_tag = tag->id;
 	this_tag_id++;
 
 #ifdef HAVE_FREETYPE
@@ -1206,14 +1206,14 @@ int vj_tag_del(int id)
 #ifdef HAVE_FREETYPE
 	vj_font_dictionary_destroy(_tag_info->font ,tag->dict);
 #endif
-    
+
     if(tag->extra)
  	free(tag->extra);
 
     /* stop streaming in first */
     switch(tag->source_type) {
-	case VJ_TAG_TYPE_V4L: 
-		if(tag->capture_type==1) { 
+	case VJ_TAG_TYPE_V4L:
+		if(tag->capture_type==1) {
 #ifdef HAVE_V4L2
 			if( no_v4l2_threads_ ) {
 				v4l2_close( vj_tag_input->unicap[tag->index]);
@@ -1233,12 +1233,12 @@ int vj_tag_del(int id)
 		if( tag->lfv ) free(tag->lfv);
 
 		break;
-     case VJ_TAG_TYPE_YUV4MPEG: 
+     case VJ_TAG_TYPE_YUV4MPEG:
 		veejay_msg(VEEJAY_MSG_INFO,"Closing yuv4mpeg file %s (Stream %d)",
 			tag->source_name,id);
 		vj_yuv_stream_stop_read(vj_tag_input->stream[tag->index]);
 //		vj_yuv4mpeg_free( vj_tag_input->stream[tag->index]);
-	 break;	
+	 break;
 #ifdef SUPPORT_READ_DV2
       case VJ_TAG_TYPE_DV1394:
 		vj_dv1394_close( vj_tag_input->dv1394[tag->index] );
@@ -1269,7 +1269,7 @@ int vj_tag_del(int id)
 	case VJ_TAG_TYPE_MCAST:
 	case VJ_TAG_TYPE_NET:
 		net_thread_stop(tag);
-		if(tag->priv) free(tag->priv);	
+		if(tag->priv) free(tag->priv);
 		break;
 	case VJ_TAG_TYPE_COLOR:
 		break;
@@ -1280,15 +1280,15 @@ int vj_tag_del(int id)
 		tag->generator = NULL;
 		break;
     }
-  
+
 	vj_tag_chain_free( tag->id );
 
 	if(tag->encoder_active)
-		vj_tag_stop_encoder( tag->id );	
-    if(tag->source_name) 
+		vj_tag_stop_encoder( tag->id );
+    if(tag->source_name)
 		free(tag->source_name);
-	
-	if(tag->method_filename) 
+
+	if(tag->method_filename)
 	{
 		free(tag->method_filename);
     	tag->method_filename = NULL;
@@ -1323,7 +1323,7 @@ int vj_tag_del(int id)
 	    hash_delete(TagHash, tag_node);
 		hnode_destroy(tag_node);
 	}
-    
+
 	free(tag);
 	tag = NULL;
     avail_tag[ next_avail_tag] = id;
@@ -1345,7 +1345,7 @@ void vj_tag_close_all() {
     	if(vj_tag_del(i)) veejay_msg(VEEJAY_MSG_DEBUG, "Deleted stream %d", i);
 	}
    }
-	
+
    if( TagHash )
 	   hash_free_nodes( TagHash );
 }
@@ -1355,7 +1355,7 @@ int	vj_tag_get_n_frames(int t1)
     vj_tag *tag = vj_tag_get(t1);
     if (!tag)
 	return -1;
-    return tag->n_frames;	
+    return tag->n_frames;
 }
 
 int	vj_tag_set_n_frames( int t1, int n )
@@ -1380,7 +1380,7 @@ int	vj_tag_load_composite_config( void *compiz, int t1 )
 
 	tag->composite = val;
 	tag->viewport  = temp;
-	return tag->composite; 
+	return tag->composite;
 }
 
 void	vj_tag_reload_config( void *compiz, int t1, int mode )
@@ -1421,7 +1421,7 @@ int	vj_tag_set_composite( void *compiz,int t1, int n )
 		return 1;
 	}
 	composite_add_to_config( compiz, tag->viewport_config, n );
-	
+
 	return 1;
 }
 
@@ -1463,7 +1463,7 @@ int	vj_tag_set_description(int t1, char *description)
 	vj_tag *tag = vj_tag_get(t1);
 	if(!tag) return 0;
 	if(!description || strlen(description) <= 0 )
-		snprintf( tag->descr, TAG_MAX_DESCR_LEN, "%s","Untitled"); 
+		snprintf( tag->descr, TAG_MAX_DESCR_LEN, "%s","Untitled");
 	else
 		snprintf( tag->descr, TAG_MAX_DESCR_LEN, "%s", description );
 	return 1;
@@ -1562,7 +1562,7 @@ int vj_tag_stop_encoder(int t1) {
         if(tag->encoder)
 	       vj_avcodec_stop( tag->encoder, tag->encoder_format );
   	tag->encoder = NULL;
-	tag->encoder_file = NULL; 
+	tag->encoder_file = NULL;
  	tag->encoder_active = 0;
 	return 1;
    }
@@ -1618,7 +1618,7 @@ int	vj_tag_get_sequenced_file(int t1, char *descr, int num, char *ext)
 int	vj_tag_try_filename(int t1, char *filename, int format)
 {
 	vj_tag *tag = vj_tag_get(t1);
-	if(!tag) 
+	if(!tag)
 	{
 		return 0;
 	}
@@ -1642,8 +1642,8 @@ int	vj_tag_try_filename(int t1, char *filename, int format)
 		default:
 			sprintf(ext,"avi");
 			break;
-	}	
-	
+	}
+
 	sprintf(tag->encoder_destination, "%s-%04d.%s", tag->encoder_base, (int)tag->sequence_num, ext);
 	return 1;
 }
@@ -1653,7 +1653,7 @@ int	vj_tag_try_filename(int t1, char *filename, int format)
 static int vj_tag_start_encoder(vj_tag *tag, int format, long nframes)
 {
 	char cformat = vj_avcodec_find_lav( format );
-	
+
 	tag->encoder =  vj_avcodec_start( _tag_info->effect_frame1, format, tag->encoder_destination );
 	if(!tag->encoder)
 	{
@@ -1686,7 +1686,7 @@ static int vj_tag_start_encoder(vj_tag *tag, int format, long nframes)
 
 	if(tag->encoder_total_frames_recorded == 0)
 	{
-		tag->encoder_frames_to_record = nframes ; 
+		tag->encoder_frames_to_record = nframes ;
 		tag->encoder_frames_recorded = 0;
 	}
 	else
@@ -1728,7 +1728,7 @@ static int vj_tag_start_encoder(vj_tag *tag, int format, long nframes)
 	}
 
 	veejay_msg(VEEJAY_MSG_INFO, "Recording to file [%s] %ldx%ld@%2.2f %d/%d/%d >%09ld<",
-		    tag->encoder_destination, 
+		    tag->encoder_destination,
 		    _tag_info->effect_frame1->width,
 		    _tag_info->effect_frame1->height,
 		    (float) _tag_info->effect_frame1->fps,
@@ -1739,7 +1739,7 @@ static int vj_tag_start_encoder(vj_tag *tag, int format, long nframes)
 
 	tag->encoder_width = _tag_info->effect_frame1->width;
 	tag->encoder_height = _tag_info->effect_frame1->height;
-	
+
 	return 1;
 }
 
@@ -1767,6 +1767,11 @@ int vj_tag_init_encoder(int t1, char *filename, int format, long nframes ) {
   return vj_tag_start_encoder( tag,format, nframes );
 }
 
+/*
+ returns: 2 if file must be auto-split;
+		  1 if recording is to finish because encoder_frames_to_record has been reached;
+		  0 otherwise
+*/
 int vj_tag_continue_record( int t1 )
 {
 	vj_tag *tag = vj_tag_get(t1);
@@ -1782,14 +1787,14 @@ int vj_tag_continue_record( int t1 )
 
 		return 2;
 	}
-	
+
 	if( tag->encoder_total_frames_recorded >= tag->encoder_frames_to_record)
 	{
 		veejay_msg(VEEJAY_MSG_INFO, "Recorded %ld frames.",
 			tag->encoder_total_frames_recorded );
 		return 1;
 	}
-	
+
 	return 0;
 
 }
@@ -1802,7 +1807,7 @@ int vj_tag_set_brightness(int t1, int value)
 		veejay_msg(VEEJAY_MSG_ERROR,"Brightness valid range is 0 - 65535");
 		return 0;
 	}
-	else	
+	else
 	{
 		if(tag->capture_type==1) {
 #ifdef HAVE_V4L2
@@ -1831,7 +1836,7 @@ int vj_tag_set_white(int t1, int value)
 #elif HAVE_V4L2
 			v4l2_set_temperature( vj_tag_input->unicap[tag->index],value);
 #endif
-		}				
+		}
 	}
 	return 1;
 }
@@ -1847,9 +1852,9 @@ int vj_tag_set_hue(int t1, int value)
 	}
 	if( tag->capture_type==1) {
 #ifdef HAVE_V4L
-		v4lvideo_set_hue( vj_tag_input->unicap[tag->index], value ); 
+		v4lvideo_set_hue( vj_tag_input->unicap[tag->index], value );
 #elif HAVE_V4L2
-		v4l2_set_hue( vj_tag_input->unicap[tag->index],value ); 	
+		v4l2_set_hue( vj_tag_input->unicap[tag->index],value );
 #endif
 	}
 	return 1;
@@ -1940,7 +1945,7 @@ int vj_tag_chain_malloc(int t1)
 {
     vj_tag  *tag = vj_tag_get(t1);
     int i=0;
-    int e_id = 0; 
+    int e_id = 0;
     int sum =0;
 
     for(i=0; i < SAMPLE_MAX_EFFECTS; i++)
@@ -1955,16 +1960,16 @@ int vj_tag_chain_malloc(int t1)
 		}
 	}
     veejay_msg(VEEJAY_MSG_DEBUG, "Allocated %d effects",sum);
-	return sum; 
+	return sum;
 }
 
 int vj_tag_chain_free(int t1)
 {
     vj_tag *tag = vj_tag_get(t1);
     int i=0;
-    int e_id = 0; 
+    int e_id = 0;
     int sum = 0;
-   
+
     for(i=0; i < SAMPLE_MAX_EFFECTS; i++)
     {
 		e_id = tag->effect_chain[i]->effect_id;
@@ -1980,14 +1985,14 @@ int vj_tag_chain_free(int t1)
 
 				sum++;
 			}
-			if( tag->effect_chain[i]->source_type == 1 && 
-				vj_tag_get_active( tag->effect_chain[i]->channel ) && 
+			if( tag->effect_chain[i]->source_type == 1 &&
+				vj_tag_get_active( tag->effect_chain[i]->channel ) &&
 				vj_tag_get_type( tag->effect_chain[i]->channel ) == VJ_TAG_TYPE_NET ) {
 				vj_tag_disable( tag->effect_chain[i]->channel );
 			}
 
 	  	}
-	}  
+	}
     return sum;
 }
 
@@ -2000,7 +2005,7 @@ int	vj_tag_chain_reset_kf( int s1, int entry )
    if(tag->effect_chain[entry]->kf)
      vpf( tag->effect_chain[entry]->kf);
    tag->effect_chain[entry]->kf = vpn( VEVO_ANONYMOUS_PORT );
-   return 1;	
+   return 1;
 }
 
 int	vj_tag_get_kf_status(int s1, int entry, int *type )
@@ -2037,7 +2042,7 @@ int	vj_tag_chain_set_kf_status( int s1, int entry, int status )
    vj_tag *tag = vj_tag_get(s1);
    if (!tag) return -1;
    tag->effect_chain[entry]->kf_status = status;
-   return 1;	
+   return 1;
 }
 
 unsigned char *vj_tag_chain_get_kfs( int s1, int entry, int parameter_id, int *len )
@@ -2126,8 +2131,8 @@ int vj_tag_set_effect(int t1, int position, int effect_id)
 			}
 
 		}
-		if( tag->effect_chain[position]->source_type == 1 && 
-			vj_tag_get_active( tag->effect_chain[position]->channel ) && 
+		if( tag->effect_chain[position]->source_type == 1 &&
+			vj_tag_get_active( tag->effect_chain[position]->channel ) &&
 			tag->effect_chain[position]->channel != t1 &&
 			vj_tag_get_type( tag->effect_chain[position]->channel ) == VJ_TAG_TYPE_NET ) {
 			vj_tag_disable( tag->effect_chain[position]->channel );
@@ -2144,7 +2149,7 @@ int vj_tag_set_effect(int t1, int position, int effect_id)
 			tag->effect_chain[position]->effect_id = -1;
 			tag->effect_chain[position]->e_flag = 1;
 			int i;
-			for( i = 0; i < SAMPLE_MAX_PARAMETERS; i ++ ) 
+			for( i = 0; i < SAMPLE_MAX_PARAMETERS; i ++ )
 				tag->effect_chain[position]->arg[i] = 0;
 
 			tag->effect_chain[position]->frame_trimmer = 0;
@@ -2158,7 +2163,7 @@ int vj_tag_set_effect(int t1, int position, int effect_id)
 		for (i = 0; i < params; i++) {
 			tag->effect_chain[position]->arg[i] = vj_effect_get_default(effect_id, i);
 		}
-		tag->effect_chain[position]->e_flag = 1; 
+		tag->effect_chain[position]->e_flag = 1;
 			tag->effect_chain[position]->kf_status = 0;
 		tag->effect_chain[position]->kf_type = 0;
 		if(tag->effect_chain[position]->kf)
@@ -2168,7 +2173,7 @@ int vj_tag_set_effect(int t1, int position, int effect_id)
 	}
 
     tag->effect_chain[position]->effect_id = effect_id;
-    
+
 
 	if (vj_effect_get_extra_frame(effect_id)) {
 		if(tag->effect_chain[position]->source_type < 0)
@@ -2242,7 +2247,7 @@ int vj_tag_get_chain_status(int t1, int position)
 int vj_tag_set_chain_status(int t1, int position, int status)
 {
     vj_tag *tag = vj_tag_get(t1);
-    
+
     if (position >= SAMPLE_MAX_EFFECTS)
 	return -1;
     tag->effect_chain[position]->e_flag = status;
@@ -2455,7 +2460,7 @@ int vj_tag_enable(int t1) {
 	if( tag->source_type == VJ_TAG_TYPE_PICTURE )
 	{
 		vj_picture *p = vj_tag_input->picture[ tag->index ];
-		p->pic = vj_picture_open( tag->source_name, 
+		p->pic = vj_picture_open( tag->source_name,
 			vj_tag_input->width, vj_tag_input->height,
 			vj_tag_input->pix_fmt );
 
@@ -2490,7 +2495,7 @@ int vj_tag_set_active(int t1, int active)
 
     if(active == tag->active)
 	    return 1;
- 	
+
     switch (tag->source_type) {
 	   case VJ_TAG_TYPE_V4L:
 
@@ -2522,7 +2527,7 @@ int vj_tag_set_active(int t1, int active)
 				v4l2_thread_set_status( v4l2_thread_info_get( vj_tag_input->unicap[tag->index]), active );
 			}
 #endif
-		} 
+		}
 		tag->active = active;
 		break;
 	case VJ_TAG_TYPE_YUV4MPEG:
@@ -2580,8 +2585,8 @@ int vj_tag_set_chain_channel(int t1, int position, int channel)
     if (position < 0 || position >= SAMPLE_MAX_EFFECTS)
 	return -1;
 
-    if( tag->effect_chain[position]->source_type == 1 && 
-	vj_tag_get_active( tag->effect_chain[position]->channel ) && 
+    if( tag->effect_chain[position]->source_type == 1 &&
+	vj_tag_get_active( tag->effect_chain[position]->channel ) &&
 	tag->effect_chain[position]->channel != t1 &&
 	vj_tag_get_type( tag->effect_chain[position]->channel ) == VJ_TAG_TYPE_NET ) {
 	vj_tag_disable( tag->effect_chain[position]->channel );
@@ -2610,8 +2615,8 @@ int vj_tag_set_chain_source(int t1, int position, int source)
     if (position < 0 || position >= SAMPLE_MAX_EFFECTS)
 		return -1;
 
-	if( tag->effect_chain[position]->source_type == 1 && 
-		vj_tag_get_active( tag->effect_chain[position]->channel ) && 
+	if( tag->effect_chain[position]->source_type == 1 &&
+		vj_tag_get_active( tag->effect_chain[position]->channel ) &&
 		tag->effect_chain[position]->channel != t1 &&
 		vj_tag_get_type( tag->effect_chain[position]->channel ) == VJ_TAG_TYPE_NET ) {
 		vj_tag_disable( tag->effect_chain[position]->channel );
@@ -2647,7 +2652,7 @@ int vj_tag_chain_size(int t1)
 int vj_tag_get_effect_status(int t1) {
 	vj_tag *tag = vj_tag_get(t1);
 	if(!tag) return -1;
-	return tag->effect_toggle;	
+	return tag->effect_toggle;
 }
 int vj_tag_get_selected_entry(int t1) {
 	vj_tag *tag = vj_tag_get(t1);
@@ -2659,14 +2664,14 @@ int vj_tag_set_effect_status(int t1, int status)
 {
 	vj_tag *tag = vj_tag_get(t1);
 	if(!tag) return -1;
-	if(status==1 || status==0) 
+	if(status==1 || status==0)
 	{
 		tag->effect_toggle = status;
 	}
 	return 1;
 }
 
-int vj_tag_set_selected_entry(int t1, int position) 
+int vj_tag_set_selected_entry(int t1, int position)
 {
 	vj_tag *tag = vj_tag_get(t1);
 	if(!tag) return -1;
@@ -2684,10 +2689,10 @@ static int vj_tag_chain_can_delete(vj_tag *tag, int reserved, int effect_id)
 
 	for(i=0; i < SAMPLE_MAX_EFFECTS; i++)
 	{
-		if(i != reserved && effect_id == tag->effect_chain[i]->effect_id) 
+		if(i != reserved && effect_id == tag->effect_chain[i]->effect_id)
 			return 0;
 	}
-	
+
 	return 1;
 }
 
@@ -2710,11 +2715,11 @@ int vj_tag_chain_remove(int t1, int index)
 
     if( tag->effect_chain[index]->kf )
 		vpf(tag->effect_chain[index]->kf );
-	
+
 	tag->effect_chain[index]->kf = vpn(VEVO_ANONYMOUS_PORT);
 
-	if( tag->effect_chain[index]->source_type == 1 && 
-		vj_tag_get_active( tag->effect_chain[index]->channel ) && 
+	if( tag->effect_chain[index]->source_type == 1 &&
+		vj_tag_get_active( tag->effect_chain[index]->channel ) &&
 		tag->effect_chain[index]->channel != t1 &&
 		vj_tag_get_type( tag->effect_chain[index]->channel ) == VJ_TAG_TYPE_NET ) {
 		vj_tag_disable( tag->effect_chain[index]->channel );
@@ -2799,7 +2804,7 @@ void vj_tag_get_descriptive(int id, char *description)
 	{
 		sprintf(description, "invalid");
 	}
-    else	
+    else
 	{
 		vj_tag_get_by_type( tag->source_type, description );
 	}
@@ -2890,6 +2895,11 @@ int	vj_tag_var(int t1, int *type, int *fader, int *fx_sta , int *rec_sta, int *a
 	return 1;
 }
 
+/*
+ returns: 2 if file must be auto-split;
+		  1 if recording is to finish because encoder_frames_to_record has been reached;
+		  0 otherwise
+*/
 int vj_tag_record_frame(int t1, uint8_t *buffer[4], uint8_t *abuff, int audio_size,int pixel_format) {
    vj_tag *tag = vj_tag_get(t1);
    int buf_len = 0;
@@ -2897,7 +2907,7 @@ int vj_tag_record_frame(int t1, uint8_t *buffer[4], uint8_t *abuff, int audio_si
 
    if(!tag->encoder_active) return -1;
 
-	long nframe = tag->encoder_frames_recorded;	
+	long nframe = tag->encoder_frames_recorded;
 
    buf_len =	vj_avcodec_encode_frame( tag->encoder, nframe, tag->encoder_format, buffer, vj_avcodec_get_buf(tag->encoder), tag->encoder_max_size, pixel_format);
    if(buf_len <= 0 ) {
@@ -2911,7 +2921,7 @@ int vj_tag_record_frame(int t1, uint8_t *buffer[4], uint8_t *abuff, int audio_si
 			veejay_msg(VEEJAY_MSG_ERROR, "writing frame, giving up :[%s]", lav_strerror());
 				return -1;
 		}
-	
+
 		if(audio_size > 0)
 		{
 			if(lav_write_audio(tag->encoder_file, abuff, audio_size))
@@ -2930,7 +2940,7 @@ int vj_tag_record_frame(int t1, uint8_t *buffer[4], uint8_t *abuff, int audio_si
 
 int vj_tag_get_audio_frame(int t1, uint8_t *dst_buffer)
 {
-	return 0;    
+	return 0;
 }
 
 
@@ -3005,7 +3015,7 @@ static void	blackframe_process(  uint8_t *Y, uint8_t *U, uint8_t *V, int w, int 
 	if( median_radius > 0 ) {
 		bf = cali_get(tag,CALI_BUF,w*h,uv_len);
 	}
-	
+
 	uint8_t *bu = bf + (w*h);
 	uint8_t *bv = bu + uv_len;
 
@@ -3021,7 +3031,7 @@ static void	blackframe_process(  uint8_t *Y, uint8_t *U, uint8_t *V, int w, int 
 		srcU = bu;
 		srcV = bv;
 	}
-	
+
 	for( i = 0; i < (w*h); i ++ ) {
 		blackframe[i] += srcY[i];
 	}
@@ -3096,7 +3106,7 @@ static void	whiteframe_process( uint8_t *Y, uint8_t *U, uint8_t *V, int w, int h
 	double *lightframe = tag->lf;
 	double *lightframe_u = tag->lfu;
 	double *lightframe_v = tag->lfv;
-	
+
 	uint8_t *bf = cali_get( tag,CALI_DARK,w*h,uv_len);
 	uint8_t *bu = bf + (w*h);
 	uint8_t *bv = bu + uv_len;
@@ -3143,7 +3153,7 @@ static void	whiteframe_process( uint8_t *Y, uint8_t *U, uint8_t *V, int w, int h
 			mean_of_v += p;
 		}
 	}
-	
+
 	mean_of_y = mean_of_y / (w*h);
 	mean_of_u = mean_of_u / uv_len;
 	mean_of_v = mean_of_v / uv_len;
@@ -3157,14 +3167,14 @@ static	void	master_lightframe(int w,int h, int uv_len, vj_tag *tag)
 	uint8_t *bf = cali_get(tag,CALI_LIGHT,w*h,uv_len);
 	uint8_t *bu = bf + (w*h);
 	uint8_t *bv = bu + uv_len;
-	
+
 	int len = w*h;
-	
+
 	double  *sY = tag->lf;
 	double  *sU = tag->lfu;
 	double  *sV = tag->lfv;
-	const int chroma = 127;	
-	
+	const int chroma = 127;
+
 
 	double sum = 0.0;
 
@@ -3183,13 +3193,13 @@ static	void	master_lightframe(int w,int h, int uv_len, vj_tag *tag)
 	for( i = 0; i <uv_len; i ++ ) {
 		if( sU[i] <= 0 )
 			bu[i] = chroma;
-		else 
+		else
 		{
 			bu[i] =  (uint8_t) chroma + (  sU[i] / duration );
 		}
 		if( sV[i] <= 0 )
 			bv[i] = chroma;
-		else 
+		else
 		{
 			bv[i] = (uint8_t) chroma + (  sV[i] / duration );
 		}
@@ -3208,7 +3218,7 @@ static	void	master_blackframe(int w, int h, int uv_len, vj_tag *tag )
 	double  *sY = tag->bf;
 	double  *sU = tag->bfu;
 	double  *sV = tag->bfv;
-	const int chroma = 127;	
+	const int chroma = 127;
 	for( i = 0; i < len; i ++ ) {
 		if( sY[i] <= 0 )
 			bf[i] = 0;
@@ -3221,13 +3231,13 @@ static	void	master_blackframe(int w, int h, int uv_len, vj_tag *tag )
 	for( i = 0; i <uv_len; i ++ ) {
 		if( sU[i] <= 0 )
 			bu[i] = chroma;
-		else 
+		else
 		{
 			bu[i] = (uint8_t) chroma + ( sU[i] / duration );
 		}
 		if( sV[i] <= 0 )
 			bv[i] = chroma;
-		else 
+		else
 		{
 			bv[i] = (uint8_t) chroma + ( sV[i] / duration );
 		}
@@ -3254,7 +3264,7 @@ static	void	master_flatframe(int w, int h, int uv_len,vj_tag *tag )
 	uint8_t *su = my + (w*h);
 	uint8_t *sv = mu + uv_len;
 
-	const int chroma = 127;	
+	const int chroma = 127;
 	double sum = 0;
 	double sum_u=0,sum_v=0;
 
@@ -3274,12 +3284,12 @@ static	void	master_flatframe(int w, int h, int uv_len,vj_tag *tag )
 	}
 	double mean_u = ( sum_u / uv_len);
 	double mean_v = ( sum_v / uv_len);
-	double mean_y = ( sum / (w*h));		
-	
+	double mean_y = ( sum / (w*h));
+
 	//@ store
 	tag->mean[0] = mean_y;
 	tag->mean[1] = mean_u;
-	tag->mean[2] = mean_v;	
+	tag->mean[2] = mean_v;
 
 }
 
@@ -3292,7 +3302,7 @@ static void	blackframe_subtract( vj_tag *tag, uint8_t *Y, uint8_t *U, uint8_t *V
 	uint8_t *wv = wu + uv_len;
 	uint8_t *bu = bf + (w*h);
 	uint8_t *bv = bu + uv_len;
-	const int chroma = 127;	
+	const int chroma = 127;
 
 	int d=0;
 	double p = 0.0;
@@ -3308,13 +3318,13 @@ static void	blackframe_subtract( vj_tag *tag, uint8_t *Y, uint8_t *U, uint8_t *V
 				d = (int) ( ( (double)Y[i] - bf[i]) / p);
 			else
 				d = 0.0f; //Y[i] - bf[i];
-			
+
 			if( d < 0 ) d = 0; else if ( d > 255 ) d = 255;
 
 			Y[i] = (uint8_t) d;
 
 		}
-		
+
 		int d1=0;
 		for( i =0 ; i < uv_len; i ++ )
 		{
@@ -3324,11 +3334,11 @@ static void	blackframe_subtract( vj_tag *tag, uint8_t *Y, uint8_t *U, uint8_t *V
 				d = chroma;
 			else
 				d  = (int) ( d1 / p );
-	
-			if ( d < 0 ) { d = 0; } else if ( d > 255 ) { d = 255;}	
-		
+
+			if ( d < 0 ) { d = 0; } else if ( d > 255 ) { d = 255;}
+
 			U[i] = (uint8_t) d;
-		
+
 			p = ( wv[i] / dmean_v );
 			d1 = ( double) (chroma + ((V[i] - chroma) - (bv[i]-chroma)));
 			if( d1 == 0 )
@@ -3371,7 +3381,7 @@ static void	blackframe_subtract( vj_tag *tag, uint8_t *Y, uint8_t *U, uint8_t *V
 #define V4L_WHITEFRAME 4
 #define V4L_WHITEFRAME_NEXT 5
 #define V4L_WHITEFRAME_PROCESS 6
-int vj_tag_grab_blackframe(int t1, int duration, int median_radius , int mode) 
+int vj_tag_grab_blackframe(int t1, int duration, int median_radius , int mode)
 {
     vj_tag *tag = vj_tag_get(t1);
     if(!tag)
@@ -3380,7 +3390,7 @@ int vj_tag_grab_blackframe(int t1, int duration, int median_radius , int mode)
 	veejay_msg(VEEJAY_MSG_INFO, "Source is not a video device.");
 	return 0;
     }
-    
+
     if( duration <= 0 )
 	    return 0;
 
@@ -3388,7 +3398,7 @@ int vj_tag_grab_blackframe(int t1, int duration, int median_radius , int mode)
 	    median_radius = 0;
     }
 
-    veejay_msg(VEEJAY_MSG_INFO, "Creating %s (%d frames) median=%d",(mode==0?"Blackframe":"Lightframe"),duration, median_radius );    
+    veejay_msg(VEEJAY_MSG_INFO, "Creating %s (%d frames) median=%d",(mode==0?"Blackframe":"Lightframe"),duration, median_radius );
 
     tag->noise_suppression = (mode == 0 ? V4L_BLACKFRAME : V4L_WHITEFRAME );
     tag->median_radius     = median_radius;
@@ -3414,7 +3424,11 @@ int vj_tag_drop_blackframe(int t1)
 }
 
 
-
+/*
+ get next frame of tag t1
+ returns 	1 if ok;
+			0 or -1 apparently on some error conditions/end of stream? XXXXXX
+*/
 int vj_tag_get_frame(int t1, uint8_t *buffer[3], uint8_t * abuffer)
 {
     vj_tag *tag = vj_tag_get(t1);
@@ -3426,7 +3440,7 @@ int vj_tag_get_frame(int t1, uint8_t *buffer[3], uint8_t * abuffer)
     const int uv_len = vj_tag_input->uv_len;
     const int len = (width * height);
 
-    
+
 	switch (tag->source_type)
 	{
 	case VJ_TAG_TYPE_V4L:
@@ -3490,7 +3504,7 @@ int vj_tag_get_frame(int t1, uint8_t *buffer[3], uint8_t * abuffer)
 				tag->bf_count --;
 				if( tag->bf_count <= 0 ) {
 					tag->noise_suppression = V4L_BLACKFRAME_PROCESS;
-					master_lightframe( width,height,uv_len,tag);	
+					master_lightframe( width,height,uv_len,tag);
 					master_flatframe( width,height,uv_len, tag );
 					veejay_msg(VEEJAY_MSG_DEBUG, "Master flat frame");
 				} else {
@@ -3526,7 +3540,7 @@ int vj_tag_get_frame(int t1, uint8_t *buffer[3], uint8_t * abuffer)
 				if( tag->tabmean[0]) free(tag->tabmean[0]);
 				break;
 				//@ process black frame
-			default:	
+			default:
 				break;
 		}
 		if( tag->noise_suppression !=  0 && tag->noise_suppression != 6 && tag->noise_suppression != 3 )
@@ -3542,7 +3556,7 @@ int vj_tag_get_frame(int t1, uint8_t *buffer[3], uint8_t * abuffer)
 				veejay_memcpy(buffer[1], p->mf + len, uv_len );
 				veejay_memcpy(buffer[2], p->mf + len  + uv_len, uv_len);
 			}
-		}	
+		}
 		break;
 #ifdef USE_GDK_PIXBUF
 	case VJ_TAG_TYPE_PICTURE:
@@ -3573,11 +3587,11 @@ int vj_tag_get_frame(int t1, uint8_t *buffer[3], uint8_t * abuffer)
 			vj_tag_set_active(t1,0);
 			return -1;
 		}
-		
+
 		yuv420to422planar( _temp_buffer, buffer, width,height );
 		veejay_memcpy( buffer[0],_temp_buffer[0],width * height );
 		return 1;
-		
+
 		break;
 #ifdef SUPPORT_READ_DV2
 	case VJ_TAG_TYPE_DV1394:
@@ -3682,7 +3696,7 @@ static void tagParseArguments(xmlDocPtr doc, xmlNodePtr cur, int *arg)
 	   	 xmlFree(xmlTemp);
    	    if (chTemp)
 	    	free(chTemp);
-	
+
 	}
 	// xmlTemp and chTemp should be freed after use
 	xmlTemp = NULL;
@@ -3816,9 +3830,9 @@ static void tagParseEffect(xmlDocPtr doc, xmlNodePtr cur, int dst_sample)
 	    if (chTemp) {
 		e_flag = atoi(chTemp);
 		free(chTemp);
-	    } 
+	    }
 	    if(xmlTemp) xmlFree(xmlTemp);
-	
+
 	}
 
 	if (!xmlStrcmp
@@ -3830,7 +3844,7 @@ static void tagParseEffect(xmlDocPtr doc, xmlNodePtr cur, int dst_sample)
 			free(chTemp);
 	    }
 	    if(xmlTemp) xmlFree(xmlTemp);
-	
+
 	}
 
 	if (!xmlStrcmp
@@ -3869,15 +3883,15 @@ static void tagParseEffect(xmlDocPtr doc, xmlNodePtr cur, int dst_sample)
 			}
 			vj_tag_set_chain_channel(dst_sample, chain_index, channel);
 			vj_tag_set_chain_source(dst_sample, chain_index, source_type);
-	
+
 			vj_tag_set_chain_status(dst_sample, chain_index, e_flag);
-	
+
 			vj_tag_set_offset(dst_sample, chain_index, frame_offset);
 			vj_tag_set_trimmer(dst_sample, chain_index, frame_trimmer);
-	
+
 			j = 0;
 			vj_tag *t = vj_tag_get( dst_sample );
-			while (curarg != NULL) 
+			while (curarg != NULL)
 			{
 					if(!xmlStrcmp(curarg->name,(const xmlChar*)"ANIM"))
 					{
@@ -3904,7 +3918,7 @@ static void tagParseEffect(xmlDocPtr doc, xmlNodePtr cur, int dst_sample)
  *
  * ParseEffect()
  *
- * Parse the effects array 
+ * Parse the effects array
  *
  ****************************************************************************************************/
 static void tagParseEffects(xmlDocPtr doc, xmlNodePtr cur, int dst_stream)
@@ -3924,7 +3938,7 @@ void	tagParseCalibration( xmlDocPtr doc, xmlNodePtr cur, int dst_sample , void *
 {
 	vj_tag *t = vj_tag_get( dst_sample );
 	void *tmp = viewport_load_xml( doc, cur, vp );
-	if( tmp ) 
+	if( tmp )
 		t->viewport_config = tmp;
 }
 
@@ -3996,11 +4010,11 @@ void tagParseStreamFX(char *sampleFile, xmlDocPtr doc, xmlNodePtr cur, void *fon
 			col[2] = tag_get_int_xml( doc, cur, (const xmlChar*) "blue" );
 		if (!xmlStrcmp(cur->name, (const xmlChar *) XMLTAG_CHAIN_ENABLED))
 			fx_on = tag_get_int_xml(doc,cur, (const xmlChar*) XMLTAG_CHAIN_ENABLED );
-		if (!xmlStrcmp(cur->name,(const xmlChar *) XMLTAG_FADER_ACTIVE)) 
+		if (!xmlStrcmp(cur->name,(const xmlChar *) XMLTAG_FADER_ACTIVE))
 			fader_active = tag_get_int_xml(doc,cur, (const xmlChar*) XMLTAG_FADER_ACTIVE);
-		if (!xmlStrcmp(cur->name,(const xmlChar *) XMLTAG_FADER_VAL)) 
+		if (!xmlStrcmp(cur->name,(const xmlChar *) XMLTAG_FADER_VAL))
 			fader_val = tag_get_int_xml( doc,cur, (const xmlChar*) XMLTAG_FADER_VAL );
-		if (!xmlStrcmp(cur->name,(const xmlChar*) XMLTAG_FADER_DIRECTION)) 
+		if (!xmlStrcmp(cur->name,(const xmlChar*) XMLTAG_FADER_DIRECTION))
 			fader_dir = tag_get_int_xml( doc, cur, (const xmlChar*) XMLTAG_FADER_DIRECTION );
 		if (!xmlStrcmp(cur->name,(const xmlChar*) "opacity" ) )
 			opacity   = tag_get_int_xml( doc, cur, (const xmlChar*) "opacity");
@@ -4027,8 +4041,8 @@ void tagParseStreamFX(char *sampleFile, xmlDocPtr doc, xmlNodePtr cur, void *fon
 	{
 		int zer = 0;
 
-		if( source_type == VJ_TAG_TYPE_V4L && extra_data )	
-			sscanf( extra_data, "%d",&zer );	
+		if( source_type == VJ_TAG_TYPE_V4L && extra_data )
+			sscanf( extra_data, "%d",&zer );
 
 		vj_tag_del( id );
 
@@ -4046,7 +4060,7 @@ void tagParseStreamFX(char *sampleFile, xmlDocPtr doc, xmlNodePtr cur, void *fon
 			tag->opacity = opacity;
 			tag->nframes = nframes;
 			tag->viewport_config = viewport_config;
-		
+
 			switch( source_type )
 			{
 				case VJ_TAG_TYPE_COLOR:
@@ -4065,7 +4079,7 @@ void tagParseStreamFX(char *sampleFile, xmlDocPtr doc, xmlNodePtr cur, void *fon
 				vj_font_xml_unpack( doc,subs, font );
 			}
 
-			if( cali ) 
+			if( cali )
 			{
 				tagParseCalibration( doc, cali, id, vp );
 			}
@@ -4105,7 +4119,7 @@ static void tagCreateKeys(xmlNodePtr node, int argcount, void *port )
 		keyframe_xml_pack( childnode, port, i );
 	}
 }
-	
+
 static void tagCreateEffect(xmlNodePtr node, sample_eff_chain * effect, int position)
 {
     char buffer[100];
@@ -4162,7 +4176,7 @@ static void tagCreateEffect(xmlNodePtr node, sample_eff_chain * effect, int posi
 
     childnode =
 	xmlNewChild(node, NULL, (const xmlChar*) "ANIM", NULL );
-	tagCreateKeys( childnode, vj_effect_get_num_params(effect->effect_id), effect->kf ); 
+	tagCreateKeys( childnode, vj_effect_get_num_params(effect->effect_id), effect->kf );
 }
 
 static void tagCreateEffects(xmlNodePtr node, sample_eff_chain ** effects)
@@ -4178,11 +4192,11 @@ static void tagCreateEffects(xmlNodePtr node, sample_eff_chain ** effects)
 	    tagCreateEffect(childnode, effects[i], i);
 	}
     }
-    
+
 }
-    
+
 void tagCreateStream(xmlNodePtr node, vj_tag *tag, void *font, void *vp)
-{   
+{
     char buffer[100];
 
     sprintf(buffer, "%d", tag->id);
@@ -4215,7 +4229,7 @@ void tagCreateStream(xmlNodePtr node, vj_tag *tag, void *font, void *vp)
 	xmlNewChild(node,NULL,(const xmlChar*) "green", (const xmlChar*) buffer );
 	sprintf(buffer, "%d", tag->color_b );
 	xmlNewChild(node,NULL,(const xmlChar*) "blue", (const xmlChar*) buffer );
-	
+
     	sprintf(buffer, "%d", tag->nframes );
 	xmlNewChild(node, NULL, (const xmlChar*) "nframes", (const xmlChar*) buffer );
 

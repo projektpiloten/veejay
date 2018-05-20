@@ -1,16 +1,16 @@
 /*
  * Copyright (C) 2002 Niels Elburg <elburg@hio.hen.nl>
- * 
+ *
  * This program is free software you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
  * of the License, or (at your option) any later version.
- * 
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
@@ -77,7 +77,7 @@ typedef struct {
 #define RANDTYPE_NOFX 0
 #define RANDTYPE_PIXEL 1
 #define RANDTYPE_GEO 2
-#define RANDTYPE_MIXED 3 
+#define RANDTYPE_MIXED 3
 #define RANDTIMER_FRAME 1
 #define RANDTIMER_LENGTH 0
 
@@ -93,7 +93,7 @@ typedef struct
 typedef struct
 {
 	int chroma;
-	char norm; 
+	char norm;
 	int width;
 	int height;
 	float fps;
@@ -112,7 +112,7 @@ typedef struct
 
 typedef struct {
     pthread_t software_playback_thread;
-    pthread_t playback_thread;	
+    pthread_t playback_thread;
     pthread_attr_t playback_attr;
     pthread_t geo_stat;
     pthread_mutex_t valid_mutex;
@@ -141,20 +141,20 @@ typedef struct {
     long rendered_frames;
     long currently_processed_entry;
     struct mjpeg_sync syncinfo[MJPEG_MAX_BUF];	/* synchronization info */
-    uint64_t *save_list;	/* for editing purposes */
-    double spas;		/* seconds per audio sample */
-    int audio_mute;		/* controls whether to currently play audio or not */
-    int state;			/* playing, paused or stoppped */
-    int offline_ready;
-    int offline_record;
-    int offline_tag_id;
-    int offline_created_sample;
+    uint64_t *save_list;			/* for editing purposes */
+    double spas;					/* seconds per audio sample */
+    int audio_mute;					/* controls whether to currently play audio or not */
+    int state;						/* playing, paused or stoppped */
+    int offline_ready;				/* no reference to this found anywhere */
+    int offline_record;				/* [0-1] whether currently recording from stream 'offline_tag_id' */
+    int offline_tag_id;				/* id of currently recorded stream */
+    int offline_created_sample;		/* [0-1] 1=autoplay newly created sample after VIMS_STREAM_OFFLINE_REC_STOP */
     int sample_record;
     int sample_record_id;
     int sample_record_switch;
     int full_screen;
     int tag_record_switch;
-    int tag_record;
+    int tag_record;					/* [0-1] 1=recording stream; set by VIMS_STREAM_REC_START */
     int dct_method;
     subsample_mode_t sample_mode;
 	int unicast_link_id;
@@ -176,7 +176,7 @@ typedef struct {
 	VJRectangle viewport;
 	vj_rand_player randplayer;
 	void	*export_image;
-	int	links[VJ_MAX_CONNECTIONS]; 
+	int	links[VJ_MAX_CONNECTIONS];
 	int	ncpu;
 	int	vp_rec;
 	int	late[2];
@@ -189,7 +189,7 @@ typedef struct {
 	int	repeat_delay;
 	int	repeat_interval;
 	int	simple_frame_dup;
-	uint32_t cycle_count[2]; //@ required for veejay-radar 
+	uint32_t cycle_count[2]; //@ required for veejay-radar
 	int	sample_restart;
 	int	feedback;
 	int feedback_stage;
@@ -270,7 +270,7 @@ typedef struct {
 	user_control *uc;		/* user control */
     void *osc;
     VJFrame *plugin_frame;
-    VJFrameInfo *plugin_frame_info; 
+    VJFrameInfo *plugin_frame_info;
     VJFrame *effect_frame1;
 	VJFrame *effect_frame2;
 	VJFrameInfo *effect_frame_info;
