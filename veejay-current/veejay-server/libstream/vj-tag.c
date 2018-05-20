@@ -3431,117 +3431,136 @@ int vj_tag_drop_blackframe(int t1)
 */
 int vj_tag_get_frame(int t1, uint8_t *buffer[3], uint8_t * abuffer)
 {
-    vj_tag *tag = vj_tag_get(t1);
-    if(!tag)
-	    return -1;
+	vj_tag *tag = vj_tag_get(t1);
+	if(!tag)
+		return -1;
 
-    const int width = vj_tag_input->width;
-    const int height = vj_tag_input->height;
-    const int uv_len = vj_tag_input->uv_len;
-    const int len = (width * height);
+	const int width = vj_tag_input->width;
+	const int height = vj_tag_input->height;
+	const int uv_len = vj_tag_input->uv_len;
+	const int len = (width * height);
 
 
 	switch (tag->source_type)
 	{
 	case VJ_TAG_TYPE_V4L:
-		if( tag->capture_type == 1 ) {
+		if( tag->capture_type == 1 )
+		{
 			int res = 0;
 #ifdef HAVE_V4L
 			res = v4lvideo_copy_framebuffer_to(vj_tag_input->unicap[tag->index],buffer[0],buffer[1],buffer[2]);
 #endif
 
 #ifdef HAVE_V4L2
-			if( no_v4l2_threads_ ) {
-			 res = v4l2_pull_frame( vj_tag_input->unicap[tag->index],v4l2_get_dst(vj_tag_input->unicap[tag->index],buffer[0],buffer[1],buffer[2]) );
-			} else {
-			 res = v4l2_thread_pull( v4l2_thread_info_get( vj_tag_input->unicap[tag->index]),
-						v4l2_get_dst( vj_tag_input->unicap[tag->index], buffer[0],buffer[1],buffer[2]));
+			if( no_v4l2_threads_ )
+			{
+				res = v4l2_pull_frame( vj_tag_input->unicap[tag->index],v4l2_get_dst(vj_tag_input->unicap[tag->index],buffer[0],buffer[1],buffer[2]) );
+			}
+			else
+			{
+				res = v4l2_thread_pull( v4l2_thread_info_get( vj_tag_input->unicap[tag->index]),
+				                        v4l2_get_dst( vj_tag_input->unicap[tag->index], buffer[0],buffer[1],buffer[2]));
 			}
 #endif
-			if( res <= 0 ) {
+			if( res <= 0 )
+			{
 				veejay_memset( buffer[0], 0, len );
 				veejay_memset( buffer[1], 128, uv_len );
 				veejay_memset( buffer[2], 128, uv_len );
 			}
 		}
-		switch( tag->noise_suppression ) {
-			case V4L_BLACKFRAME:
-				tag->cali_duration = tag->bf_count;
-				blackframe_new(width,height,uv_len,buffer[0],buffer[1],buffer[2],tag->median_radius,tag);
-				tag->tabmean[0]    = (double*) vj_malloc(sizeof(double)* tag->cali_duration);
-				if(tag->blackframe == NULL ) {
-					tag->noise_suppression = 0;
-				} else {
-					tag->bf_count --;
-					tag->noise_suppression = V4L_BLACKFRAME_NEXT;
-					if(tag->bf_count==0) {
-						master_blackframe(width,height,uv_len,tag);
-						tag->noise_suppression = V4L_BLACKFRAME_PROCESS;
-						veejay_msg(VEEJAY_MSG_INFO, "Please create a lightframe (white)");
-					}
-				}
-				//@ grab black frame
-				break;
-			case V4L_WHITEFRAME:
-				tag->cali_duration = tag->bf_count;
-				if(!tag->blackframe) {
-					veejay_msg(0, "Please start with a black frame first (Put cap on lens)");
-					tag->noise_suppression = 0;
-					break;
-				}
-				whiteframe_new( tag->blackframe,width,height,uv_len,buffer[0],buffer[1],buffer[2],tag->median_radius, tag);
+		switch( tag->noise_suppression )
+		{
+		case V4L_BLACKFRAME:
+			tag->cali_duration = tag->bf_count;
+			blackframe_new(width,height,uv_len,buffer[0],buffer[1],buffer[2],tag->median_radius,tag);
+			tag->tabmean[0]    = (double*) vj_malloc(sizeof(double)* tag->cali_duration);
+			if(tag->blackframe == NULL )
+			{
+				tag->noise_suppression = 0;
+			}
+			else
+			{
 				tag->bf_count --;
-				tag->noise_suppression = V4L_WHITEFRAME_NEXT;
-				if(tag->bf_count <= 0 ) {
-					tag->noise_suppression = V4L_BLACKFRAME_PROCESS;
-					master_lightframe( width,height,uv_len,tag );
-					master_flatframe( width,height,uv_len, tag );
-					veejay_msg(VEEJAY_MSG_DEBUG, "Master flat frame.");
-				}
-				break;
-			case V4L_WHITEFRAME_NEXT:
-				whiteframe_process(buffer[0],buffer[1],buffer[2],width,height,uv_len,tag->median_radius,tag );
-				tag->bf_count --;
-				if( tag->bf_count <= 0 ) {
-					tag->noise_suppression = V4L_BLACKFRAME_PROCESS;
-					master_lightframe( width,height,uv_len,tag);
-					master_flatframe( width,height,uv_len, tag );
-					veejay_msg(VEEJAY_MSG_DEBUG, "Master flat frame");
-				} else {
-					veejay_msg(VEEJAY_MSG_DEBUG, "Whiteframe %d",tag->bf_count );
-				}
-				break;
-			case V4L_BLACKFRAME_NEXT:
-				blackframe_process( buffer[0],buffer[1],buffer[2],width,height,uv_len, tag->median_radius,tag );
-				if( tag->bf_count <= 0 ) {
-					tag->noise_suppression = 0;
+				tag->noise_suppression = V4L_BLACKFRAME_NEXT;
+				if(tag->bf_count==0)
+				{
 					master_blackframe(width,height,uv_len,tag);
-					veejay_msg(VEEJAY_MSG_INFO, "Please create a lightframe.");
-				} else {
-				    veejay_msg(VEEJAY_MSG_DEBUG, "Blackframe %d", tag->bf_count );
-				    tag->bf_count --;
+					tag->noise_suppression = V4L_BLACKFRAME_PROCESS;
+					veejay_msg(VEEJAY_MSG_INFO, "Please create a lightframe (white)");
 				}
+			}
+			//@ grab black frame
+			break;
+		case V4L_WHITEFRAME:
+			tag->cali_duration = tag->bf_count;
+			if(!tag->blackframe)
+			{
+				veejay_msg(0, "Please start with a black frame first (Put cap on lens)");
+				tag->noise_suppression = 0;
 				break;
-			case V4L_BLACKFRAME_PROCESS:
-				blackframe_subtract( tag,buffer[0],buffer[1],buffer[2],width,height,uv_len, tag->has_white , tag->mean[0],tag->mean[1],tag->mean[2]);
-				break;
-			case -1:
-				if( tag->blackframe ) {
-					free(tag->blackframe);
-					tag->blackframe = NULL;
-					tag->noise_suppression = 0;
-				}
-				if( tag->bf ) free(tag->bf);
-				if( tag->bfu ) free(tag->bfu);
-				if( tag->bfv ) free(tag->bfv);
-				if( tag->lf ) free(tag->lf);
-				if( tag->lfu ) free(tag->lfu);
-				if( tag->lfv ) free(tag->lfv);
-				if( tag->tabmean[0]) free(tag->tabmean[0]);
-				break;
-				//@ process black frame
-			default:
-				break;
+			}
+			whiteframe_new( tag->blackframe,width,height,uv_len,buffer[0],buffer[1],buffer[2],tag->median_radius, tag);
+			tag->bf_count --;
+			tag->noise_suppression = V4L_WHITEFRAME_NEXT;
+			if(tag->bf_count <= 0 )
+			{
+				tag->noise_suppression = V4L_BLACKFRAME_PROCESS;
+				master_lightframe( width,height,uv_len,tag );
+				master_flatframe( width,height,uv_len, tag );
+				veejay_msg(VEEJAY_MSG_DEBUG, "Master flat frame.");
+			}
+			break;
+		case V4L_WHITEFRAME_NEXT:
+			whiteframe_process(buffer[0],buffer[1],buffer[2],width,height,uv_len,tag->median_radius,tag );
+			tag->bf_count --;
+			if( tag->bf_count <= 0 )
+			{
+				tag->noise_suppression = V4L_BLACKFRAME_PROCESS;
+				master_lightframe( width,height,uv_len,tag);
+				master_flatframe( width,height,uv_len, tag );
+				veejay_msg(VEEJAY_MSG_DEBUG, "Master flat frame");
+			}
+			else
+			{
+				veejay_msg(VEEJAY_MSG_DEBUG, "Whiteframe %d",tag->bf_count );
+			}
+			break;
+		case V4L_BLACKFRAME_NEXT:
+			blackframe_process( buffer[0],buffer[1],buffer[2],width,height,uv_len, tag->median_radius,tag );
+			if( tag->bf_count <= 0 )
+			{
+				tag->noise_suppression = 0;
+				master_blackframe(width,height,uv_len,tag);
+				veejay_msg(VEEJAY_MSG_INFO, "Please create a lightframe.");
+			}
+			else
+			{
+				veejay_msg(VEEJAY_MSG_DEBUG, "Blackframe %d", tag->bf_count );
+				tag->bf_count --;
+			}
+			break;
+		case V4L_BLACKFRAME_PROCESS:
+			blackframe_subtract( tag,buffer[0],buffer[1],buffer[2],width,height,uv_len, tag->has_white, tag->mean[0],tag->mean[1],tag->mean[2]);
+			break;
+		case -1:
+			if( tag->blackframe )
+			{
+				free(tag->blackframe);
+				tag->blackframe = NULL;
+				tag->noise_suppression = 0;
+			}
+			if( tag->bf ) free(tag->bf);
+			if( tag->bfu ) free(tag->bfu);
+			if( tag->bfv ) free(tag->bfv);
+			if( tag->lf ) free(tag->lf);
+			if( tag->lfu ) free(tag->lfu);
+			if( tag->lfv ) free(tag->lfv);
+			if( tag->tabmean[0]) free(tag->tabmean[0]);
+			break;
+		//@ process black frame
+		default:
+			break;
 		}
 		if( tag->noise_suppression !=  0 && tag->noise_suppression != 6 && tag->noise_suppression != 3 )
 			veejay_msg(VEEJAY_MSG_DEBUG, "Calibration step %d of %d", tag->bf_count, tag->cali_duration );
@@ -3549,31 +3568,32 @@ int vj_tag_get_frame(int t1, uint8_t *buffer[3], uint8_t * abuffer)
 		return 1;
 		break;
 	case VJ_TAG_TYPE_CALI:
+	{
+		cali_tag_t *p = (cali_tag_t*)vj_tag_input->cali[tag->index];
+		if(p)
 		{
-			cali_tag_t *p = (cali_tag_t*)vj_tag_input->cali[tag->index];
-			if(p) {
-				veejay_memcpy(buffer[0], p->mf, len );
-				veejay_memcpy(buffer[1], p->mf + len, uv_len );
-				veejay_memcpy(buffer[2], p->mf + len  + uv_len, uv_len);
-			}
+			veejay_memcpy(buffer[0], p->mf, len );
+			veejay_memcpy(buffer[1], p->mf + len, uv_len );
+			veejay_memcpy(buffer[2], p->mf + len  + uv_len, uv_len);
 		}
-		break;
+	}
+	break;
 #ifdef USE_GDK_PIXBUF
 	case VJ_TAG_TYPE_PICTURE:
+	{
+		vj_picture *p = vj_tag_input->picture[tag->index];
+		if(!p)
 		{
-			vj_picture *p = vj_tag_input->picture[tag->index];
-			if(!p)
-			{
-				veejay_msg(VEEJAY_MSG_ERROR, "Picture never opened");
-				vj_tag_disable(t1);
-				return -1;
-			}
-			VJFrame *pframe = vj_picture_get( p->pic );
-			veejay_memcpy(buffer[0],pframe->data[0], len);
-			veejay_memcpy(buffer[1],pframe->data[1], uv_len);
-			veejay_memcpy(buffer[2],pframe->data[2], uv_len);
+			veejay_msg(VEEJAY_MSG_ERROR, "Picture never opened");
+			vj_tag_disable(t1);
+			return -1;
 		}
-		break;
+		VJFrame *pframe = vj_picture_get( p->pic );
+		veejay_memcpy(buffer[0],pframe->data[0], len);
+		veejay_memcpy(buffer[1],pframe->data[1], uv_len);
+		veejay_memcpy(buffer[2],pframe->data[2], uv_len);
+	}
+	break;
 #endif
 	case VJ_TAG_TYPE_MCAST:
 	case VJ_TAG_TYPE_NET:
@@ -3595,7 +3615,7 @@ int vj_tag_get_frame(int t1, uint8_t *buffer[3], uint8_t * abuffer)
 		break;
 #ifdef SUPPORT_READ_DV2
 	case VJ_TAG_TYPE_DV1394:
-		vj_dv1394_read_frame( vj_tag_input->dv1394[tag->index], buffer , abuffer,vj_tag_input->pix_fmt);
+		vj_dv1394_read_frame( vj_tag_input->dv1394[tag->index], buffer, abuffer,vj_tag_input->pix_fmt);
 		break;
 #endif
 	case VJ_TAG_TYPE_GENERATOR:
@@ -3607,7 +3627,8 @@ int vj_tag_get_frame(int t1, uint8_t *buffer[3], uint8_t * abuffer)
 		_tmp.width   = width;
 		_tmp.height  = height;
 		_tmp.format  = PIX_FMT_YUVJ422P;
-		if( tag->generator ) {
+		if( tag->generator )
+		{
 			plug_push_frame( tag->generator, 1, 0, &_tmp );
 			plug_set_parameter( tag->generator, 0,1,&(tag->color_r) );
 			plug_set_parameter( tag->generator, 1,1,&(tag->color_g) );
@@ -3627,14 +3648,13 @@ int vj_tag_get_frame(int t1, uint8_t *buffer[3], uint8_t * abuffer)
 		dummy_rgb_apply( &_tmp, width, height, tag->color_r,tag->color_g,tag->color_b );
 		break;
 
-    case VJ_TAG_TYPE_NONE:
+	case VJ_TAG_TYPE_NONE:
 		break;
-		default:
+	default:
 		break;
-    	}
-    	return 1;
+	}
+	return 1;
 }
-
 
 //int vj_tag_sprint_status(int tag_id, int entry, int changed, char *str)
 int vj_tag_sprint_status( int tag_id,int cache,int sa, int ca, int pfps,int frame,int mode,int ts,int curfps, uint32_t lo, uint32_t hi, int macro, char *str )
