@@ -900,11 +900,13 @@ static int veejay_screen_update(veejay_t * info )
 	int i = 0;
 	int skip_update = 0;
 
+#ifdef VERBOSE_DEBUG_SCREEN_UPDATE
 	static long last_time;
 	long time= vj_get_timer();
 	long td= time - last_time;
 	veejay_msg(VEEJAY_MSG_DEBUG, "screen update with delta %.2f (~%5.2f fps)", td / 1000000., 1000000. / td);
 	last_time= time;
+#endif
 
 	video_playback_setup *settings = info->settings;
 	int check_vp = settings->composite;
@@ -1399,6 +1401,11 @@ static	void	veejay_event_handle(veejay_t *info)
 		while(SDL_PollEvent(&event) == 1)
 		{
 			int mod = SDL_GetModState();
+			if( event.type == SDL_QUIT )
+			{
+				va_list ap;
+				vj_event_quit(info, "", ap);
+			}
 			if( event.type == SDL_KEYDOWN || event.type == SDL_MOUSEBUTTONDOWN)
 			{
 				vj_event_single_fire( (void*) info, event, 0);
@@ -1408,7 +1415,6 @@ static	void	veejay_event_handle(veejay_t *info)
 				mouse_x = event.button.x;
 				mouse_y = event.button.y;
 			}
-
 			if( info->use_mouse && event.type == SDL_MOUSEBUTTONDOWN )
 			{
 				mouse_x = event.button.x;
