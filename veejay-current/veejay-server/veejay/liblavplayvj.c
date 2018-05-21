@@ -900,6 +900,12 @@ static int veejay_screen_update(veejay_t * info )
 	int i = 0;
 	int skip_update = 0;
 
+	static long last_time;
+	long time= vj_get_timer();
+	long td= time - last_time;
+	veejay_msg(VEEJAY_MSG_DEBUG, "screen update with delta %.2f (~%5.2f fps)", td / 1000000., 1000000. / td);
+	last_time= time;
+
 	video_playback_setup *settings = info->settings;
 	int check_vp = settings->composite;
 
@@ -920,14 +926,16 @@ static int veejay_screen_update(veejay_t * info )
 #ifdef HAVE_SDL
 	if(check_vp)
 	{
-		if( info->video_out == 0 ) {
+		if( info->video_out == 0 )
+		{
 			if(!vj_sdl_lock( info->sdl[0] ) )
 				return 0;
 			composite_blit_yuyv( info->composite,frame, vj_sdl_get_yuv_overlay(info->sdl[0]),settings->composite);
 			if(!vj_sdl_unlock( info->sdl[0]) )
 				return 0;
 		}
-		if( info->video_out != 4 ) {
+		if( info->video_out != 4 )
+		{
 			skip_update = 1;
 		}
 	}
@@ -935,89 +943,94 @@ static int veejay_screen_update(veejay_t * info )
 	if( info->shm && vj_shm_get_status(info->shm) == 1 )
 	{
 		int plane_sizes[4] = { info->effect_frame1->len, info->effect_frame1->uv_len,
-		   		info->effect_frame1->uv_len,0 };
-		if( vj_shm_write(info->shm, frame,plane_sizes) == -1 ) {
+		                       info->effect_frame1->uv_len,0
+		                     };
+		if( vj_shm_write(info->shm, frame,plane_sizes) == -1 )
+		{
 			veejay_msg(0, "failed to write to shared resource!");
 		}
 	}
 
 	if( info->vloopback )
 	{
-		vj_vloopback_fill_buffer( info->vloopback , frame );
+		vj_vloopback_fill_buffer( info->vloopback, frame );
 		vj_vloopback_write_pipe( info->vloopback );
 	}
 
 #ifdef HAVE_JPEG
 #ifdef USE_GDK_PIXBUF
-        if (info->uc->hackme == 1)
-        {
-                info->uc->hackme = 0;
+	if (info->uc->hackme == 1)
+	{
+		info->uc->hackme = 0;
 #ifdef USE_GDK_PIXBUF
-                if(!vj_picture_save( info->settings->export_image, frame,
-                                info->video_output_width, info->video_output_height,
-                                get_ffmpeg_pixfmt( info->pixel_format )) )
-                {
-                        veejay_msg(VEEJAY_MSG_ERROR,
-                                "Unable to write frame %ld to image as '%s'",
-                                        info->settings->current_frame_num, info->settings->export_image );
-                }
+		if(!vj_picture_save( info->settings->export_image, frame,
+		                     info->video_output_width, info->video_output_height,
+		                     get_ffmpeg_pixfmt( info->pixel_format )) )
+		{
+			veejay_msg(VEEJAY_MSG_ERROR,
+			           "Unable to write frame %ld to image as '%s'",
+			           info->settings->current_frame_num, info->settings->export_image );
+		}
 #else
 #ifdef HAVE_JPEG
-                vj_perform_screenshot2(info, frame);
-                if(info->uc->filename) free(info->uc->filename);
+		vj_perform_screenshot2(info, frame);
+		if(info->uc->filename) free(info->uc->filename);
 #endif
 #endif
-        }
+	}
 #endif
 #endif
 
 #ifdef HAVE_SDL
-	if(skip_update) {
-		if(info->video_out == 0 ) {
-		   for(i = 0 ; i < MAX_SDL_OUT; i ++ )
-			if( info->sdl[i] )
-				vj_sdl_flip(info->sdl[i]);
+	if(skip_update)
+	{
+		if(info->video_out == 0 )
+		{
+			for(i = 0 ; i < MAX_SDL_OUT; i ++ )
+				if( info->sdl[i] )
+					vj_sdl_flip(info->sdl[i]);
 		}
 		return 1;
 	}
 #endif
-    	switch (info->video_out)
+	switch (info->video_out)
 	{
 #ifdef HAVE_SDL
 		case 0:
 			for(i = 0 ; i < MAX_SDL_OUT; i ++ )
-			if( info->sdl[i] )
-				if(!vj_sdl_update_yuv_overlay( info->sdl[i], frame ) )  return 0;
-	   	break;
+				if( info->sdl[i] )
+					if(!vj_sdl_update_yuv_overlay( info->sdl[i], frame ) )  return 0;
+			break;
 #endif
 		case 1:
 #ifdef HAVE_DIRECTFB
-	   		vj_perform_get_primary_frame_420p(info,c_frame);
-	    		if (vj_dfb_update_yuv_overlay(info->dfb, c_frame) != 0)
+			vj_perform_get_primary_frame_420p(info,c_frame);
+			if (vj_dfb_update_yuv_overlay(info->dfb, c_frame) != 0)
 			{
 				return 0;
-	    		}
+			}
 #endif
-	    	break;
+			break;
 		case 2:
 #ifdef HAVE_DIRECTFB
 #ifdef HAVE_SDL
 			for( i = 0; i < MAX_SDL_OUT; i ++ )
 				if( info->sdl[i] )
-		  			if(!vj_sdl_update_yuv_overlay( info->sdl[i], frame ) )
-					       	return 0;
+					if(!vj_sdl_update_yuv_overlay( info->sdl[i], frame ) )
+						return 0;
 #endif
-	    		vj_perform_get_primary_frame_420p(info,c_frame);
-	    		if (vj_dfb_update_yuv_overlay(info->dfb, c_frame) != 0)
-				{
-					return 0;
-	    		}
+			vj_perform_get_primary_frame_420p(info,c_frame);
+			if (vj_dfb_update_yuv_overlay(info->dfb, c_frame) != 0)
+			{
+				return 0;
+			}
 #endif
-			 break;
+			break;
 		case 3:
 			break;
 		case 4:
-			if( vj_yuv_put_frame( info->y4m, frame ) == -1 ) {
+			if( vj_yuv_put_frame( info->y4m, frame ) == -1 )
+			{
 				veejay_msg(0, "Failed to write a frame!");
 				veejay_change_state(info,LAVPLAY_STATE_STOP);
 				return 0;
@@ -1025,13 +1038,13 @@ static int veejay_screen_update(veejay_t * info )
 			break;
 		case 5:
 			break;
-	default:
-		veejay_change_state(info,LAVPLAY_STATE_STOP);
-		return 0;
-		break;
-    }
+		default:
+			veejay_change_state(info,LAVPLAY_STATE_STOP);
+			return 0;
+			break;
+	}
 
-    return 1;
+	return 1;
 }
 
 
@@ -1485,68 +1498,65 @@ static	void	veejay_event_handle(veejay_t *info)
 
 static void *veejay_mjpeg_playback_thread(void *arg)
 {
-    veejay_t *info = (veejay_t *) arg;
-    video_playback_setup *settings =
-	(video_playback_setup *) info->settings;
-   /* Allow easy shutting down by other processes... */
-    pthread_setcancelstate(PTHREAD_CANCEL_ENABLE, NULL);
-    pthread_setcanceltype(PTHREAD_CANCEL_ASYNCHRONOUS, NULL);
+	veejay_t *info = (veejay_t *) arg;
+	video_playback_setup *settings =
+	    (video_playback_setup *) info->settings;
+	/* Allow easy shutting down by other processes... */
+	pthread_setcancelstate(PTHREAD_CANCEL_ENABLE, NULL);
+	pthread_setcanceltype(PTHREAD_CANCEL_ASYNCHRONOUS, NULL);
 
-	vj_get_relative_time();
+	vj_get_relative_time();	/* what for? return value not used; fn sets vj_relative_time, which is declared static in vj-misc.c and apparently not used anywhere */
 
-    vj_osc_set_veejay_t(info);
-    vj_tag_set_veejay_t(info);
+	vj_osc_set_veejay_t(info);
+	vj_tag_set_veejay_t(info);
 
 #ifdef HAVE_SDL
-    if( info->settings->repeat_delay > 0 && info->settings->repeat_interval ) {
-	SDL_EnableKeyRepeat(SDL_DEFAULT_REPEAT_DELAY, SDL_DEFAULT_REPEAT_INTERVAL);
+	if( info->settings->repeat_delay > 0 && info->settings->repeat_interval )
+	{
+		// XXXXXXXXX why here?! do we do any SDL event processing in this thread?
+		SDL_EnableKeyRepeat(SDL_DEFAULT_REPEAT_DELAY, SDL_DEFAULT_REPEAT_INTERVAL);
 	}
 #endif
-    while (settings->state != LAVPLAY_STATE_STOP) {
-	pthread_mutex_lock(&(settings->valid_mutex));
-	while (settings->valid[settings->currently_processed_frame] == 0) {
-	    pthread_cond_wait(&
-			      (settings->
-			       buffer_filled[settings->
-					     currently_processed_frame]),
-			      &(settings->valid_mutex));
-	    if (settings->state == LAVPLAY_STATE_STOP) {
-		// Ok, we shall exit, that's the reason for the wakeup
-		veejay_msg(VEEJAY_MSG_DEBUG,"Veejay was told to exit");
-		pthread_mutex_unlock(&(settings->valid_mutex));
-		pthread_exit(NULL);
-	 	return NULL;
-	    }
-	}
-	pthread_mutex_unlock(&(settings->valid_mutex));
-
-        if( settings->state != LAVPLAY_STATE_PAUSED && settings->currently_processed_entry != settings->buffer_entry[settings->currently_processed_frame] &&
-		!veejay_screen_update(info)  )
+	while (settings->state != LAVPLAY_STATE_STOP)
 	{
-		veejay_msg(VEEJAY_MSG_WARNING, "Error playing frame %d. I won't give up yet!", settings->current_frame_num);
+		pthread_mutex_lock(&(settings->valid_mutex));
+		while (settings->valid[settings->currently_processed_frame] == 0)
+		{
+			pthread_cond_wait( &(settings->buffer_filled[settings->currently_processed_frame]), &(settings->valid_mutex) );
+			if (settings->state == LAVPLAY_STATE_STOP)
+			{
+				// Ok, we shall exit, that's the reason for the wakeup
+				veejay_msg(VEEJAY_MSG_DEBUG, "Veejay was told to exit");
+				pthread_mutex_unlock(&(settings->valid_mutex));
+				pthread_exit(NULL);
+				return NULL;
+			}
+		}
+		pthread_mutex_unlock(&(settings->valid_mutex));
+
+		if( settings->state != LAVPLAY_STATE_PAUSED && settings->currently_processed_entry != settings->buffer_entry[settings->currently_processed_frame] &&
+		        !veejay_screen_update(info)  )
+		{
+			veejay_msg(VEEJAY_MSG_WARNING, "Error playing frame %d. I won't give up yet!", settings->current_frame_num);
+		}
+
+		settings->currently_processed_entry = settings->buffer_entry[settings->currently_processed_frame];
+
+		// timestamp frame after sync
+		veejay_mjpeg_software_frame_sync(info, settings->valid[settings->currently_processed_frame]);
+		settings->syncinfo[settings->currently_processed_frame].frame = settings->currently_processed_frame;
+
+		pthread_mutex_lock(&(settings->valid_mutex));
+		settings->valid[settings->currently_processed_frame] = 0;
+		pthread_cond_broadcast(&(settings->buffer_done[settings->currently_processed_frame]));
+		pthread_mutex_unlock(&(settings->valid_mutex));
+
+		settings->currently_processed_frame = (settings->currently_processed_frame + 1) % 1;
 	}
+	veejay_msg( VEEJAY_MSG_INFO, "Playback thread: was told to exit");
+	pthread_exit(NULL);
 
-	settings->currently_processed_entry =
-		settings->buffer_entry[settings->currently_processed_frame];
-
-	// timestamp frame after sync
-	veejay_mjpeg_software_frame_sync(info,
-					  settings->valid[settings->
-							  currently_processed_frame]);
-	settings->syncinfo[settings->currently_processed_frame].frame = settings->currently_processed_frame;
-
-	pthread_mutex_lock(&(settings->valid_mutex));
-	settings->valid[settings->currently_processed_frame] = 0;
-	pthread_cond_broadcast(&(settings->buffer_done[settings->currently_processed_frame]));
-	pthread_mutex_unlock(&(settings->valid_mutex));
-
-	settings->currently_processed_frame =
-	    (settings->currently_processed_frame + 1) % 1;
-    }
-    veejay_msg( VEEJAY_MSG_INFO, "Playback thread: was told to exit");
-    pthread_exit(NULL);
-
-    return NULL;
+	return NULL;
 }
 
 
@@ -2279,7 +2289,7 @@ static void veejay_playback_cycle(veejay_t * info)
 
 	stats.nqueue = QUEUE_LEN;
 	settings->spas = 1.0 / (double) el->audio_rate;
-	veejay_msg(VEEJAY_MSG_DEBUG, "Output 1.0/%2.2f seconds per video frame: %4.4f",settings->output_fps,1.0 / settings->spvf);
+	veejay_msg(VEEJAY_MSG_DEBUG, "Output 1.0/%2.2f seconds per video frame: %4.4f", settings->output_fps, 1.0 / settings->spvf);
 
 
 	while (settings->state != LAVPLAY_STATE_STOP)
@@ -2977,43 +2987,48 @@ int veejay_main(veejay_t * info)
 	pthread_attr_t attr;
 	cpu_set_t cpuset;
 
-	memset( &attr, 0 , sizeof(pthread_attr_t));
+	memset( &attr, 0, sizeof(pthread_attr_t));
 
-    	/* Flush the Linux File buffers to disk */
-    	//sync();
+	/* Flush the Linux File buffers to disk */
+	//sync();
 
-	if( task_num_cpus() > 1 ) {
+	if( task_num_cpus() > 1 )
+	{
 		CPU_ZERO( &cpuset );
 		CPU_SET ( 0, &cpuset ); /* run on the first cpu */
 
 		int err = pthread_attr_init( &attr );
-		if( err == ENOMEM ) {
+		if( err == ENOMEM )
+		{
 			veejay_msg(VEEJAY_MSG_ERROR, "Out of memory error.");
 			return 0;
-
 		}
-		if( pthread_attr_setaffinity_np( &attr, sizeof(cpuset) , &cpuset ) != 0 ) {
+		if( pthread_attr_setaffinity_np( &attr, sizeof(cpuset), &cpuset ) != 0 )
+		{
 			veejay_msg(VEEJAY_MSG_WARNING, "Unable to pin playback timer to cpu #1");
 		}
-		else {
-			veejay_msg(VEEJAY_MSG_INFO,"Pinned playback timer thread to cpu #1");
+		else
+		{
+			veejay_msg(VEEJAY_MSG_INFO, "Pinned playback timer thread to cpu #1");
 		}
 	}
 
-        int err = pthread_create(&(settings->playback_thread),&attr,
-		       veejay_playback_thread, (void *) info);
-    	if( err != 0 ) {
-		switch( err ) {
-		 case EAGAIN:
-			veejay_msg(VEEJAY_MSG_ERROR, "Insufficient resources to create playback timer thread.");
-			break;
-	  	default:
-			veejay_msg(VEEJAY_MSG_ERROR, "Failed to create playback timer thread, code %d ", err);
-    		}
-        	return 0;
-    	}
+	int err = pthread_create(&(settings->playback_thread),&attr,
+	                         veejay_playback_thread, (void *) info);
+	if( err != 0 )
+	{
+		switch( err )
+		{
+			case EAGAIN:
+				veejay_msg(VEEJAY_MSG_ERROR, "Insufficient resources to create playback timer thread.");
+				break;
+			default:
+				veejay_msg(VEEJAY_MSG_ERROR, "Failed to create playback timer thread, code %d ", err);
+		}
+		return 0;
+	}
 
-    return 1;
+	return 1;
 }
 
 

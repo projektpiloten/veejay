@@ -125,20 +125,20 @@ typedef struct {
     long old_field_len;
     uint64_t save_list_len;		/* for editing purposes */
     double spvf;		/* seconds per video frame */
-    int usec_per_frame;		/* milliseconds per frame */
+    int usec_per_frame;		/* microseconds per frame */
     int min_frame_num;		/* the lowest frame to be played back - normally 0 */
     int max_frame_num;		/* the latest frame to be played back - normally num_frames - 1 */
     int current_frame_num;	/* the current frame */
     int current_playback_speed;	/* current playback speed */
-    int currently_processed_frame;	/* changes constantly */
-    int currently_synced_frame;	/* changes constantly */
+    int currently_processed_frame;	/* write index into buffer_entry */
+    int currently_synced_frame;
     int first_frame;		/* software sync variable */
     int valid[MJPEG_MAX_BUF];	/* num of frames to be played */
-    long buffer_entry[MJPEG_MAX_BUF];
+    long buffer_entry[MJPEG_MAX_BUF];	/* double buffer written in veejay_mjpeg_playback_thread */
     int render_entry;
     int render_list;
-    int last_rendered_frame;
-    long rendered_frames;
+    /* int last_rendered_frame; */ /* not referenced anywhere */
+    /* long rendered_frames; */ /* not referenced anywhere */
     long currently_processed_entry;
     struct mjpeg_sync syncinfo[MJPEG_MAX_BUF];	/* synchronization info */
     uint64_t *save_list;			/* for editing purposes */
@@ -198,6 +198,13 @@ typedef struct {
 	int hold_status;
     int auto_mute;
 	int pace_correction;
+	/* 'wysiwyg' recording */
+	struct prec_t
+	{
+		int recording;				/* currently recording? */
+		uint64_t start;				/* time when recording started, in nanoseconds */
+		uint32_t frames_recorded;	/* how many frames have been written to video */
+	} prec;
 } video_playback_setup;
 
 typedef struct {
@@ -286,15 +293,15 @@ typedef struct {
 #ifdef HAVE_SDL
     vj_sdl **sdl;		/* array of SDL windows */
 #endif
-    vj_yuv *output_stream;	/* output stream for dumping video */
+	/* vj_yuv *output_stream; */	/* output stream for dumping video */	/* XXXXXXXX never referenced? */
     void *vloopback; // vloopback output
-    void *video_out_scaler;
-    int render_now;	        /* write RGB */
-    int render_continous;
+    /* void *video_out_scaler; */ /* referenced nowhere */
+    /* int render_now; */        /* write RGB */	/* referenced nowhere */
+    /* int render_continous; */		/* referenced nowhere */
     char action_file[2][1024];
     char y4m_file[1024];
     int stream_outformat;
-    int stream_enabled;
+    /* int stream_enabled; */	/* referenced nowhere */
     int last_sample_id;
     int last_tag_id;
     int nstreams;
@@ -304,7 +311,7 @@ typedef struct {
     int render_entry;
     int render_continue;
     video_playback_setup *settings;	/* private info - don't touch :-) (type UNKNOWN) */
-    int real_fps;
+    int real_fps;			/* no, those are not FPS -- those are MILLISECONDS spent in some portion of code */
     int dump;
     int verbose;
     int no_bezerk;

@@ -11,7 +11,7 @@ int vj_perform_preview_max_height();
 void vj_perform_init_output_frame( veejay_t *info, uint8_t **frame,
                                 int dst_w, int dst_h );
 
-void	vj_perform_update_plugin_frame(VJFrame *frame);         
+void	vj_perform_update_plugin_frame(VJFrame *frame);
 
 VJFrame	*vj_perform_init_plugin_frame(veejay_t *info);
 VJFrameInfo *vj_perform_init_plugin_frame_info(veejay_t *info);
@@ -33,7 +33,7 @@ void vj_perform_audio_stop(veejay_t * info);
 
 void vj_perform_get_primary_frame(veejay_t * info, uint8_t ** frame );
 
-void	vj_perform_get_primary_frame_420p(veejay_t *info, uint8_t **frame ); 
+void	vj_perform_get_primary_frame_420p(veejay_t *info, uint8_t **frame );
 
 int vj_perform_fill_audio_buffers(veejay_t *info, uint8_t *audio_buf, uint8_t *temporary_buffer, int *temporary_sum);
 
@@ -49,9 +49,9 @@ void vj_perform_clear_frame_info();
 
 void vj_perform_record_stop(veejay_t *info);
 
-void vj_perform_record_sample_frame(veejay_t *info, int sample); 
+void vj_perform_record_sample_frame(veejay_t *info, int sample);
 
-void vj_perform_record_tag_frame(veejay_t *info ); 
+void vj_perform_record_tag_frame(veejay_t *info );
 void	vj_perform_get_output_frame_420p( veejay_t *info, uint8_t **frame, int w, int h );
 void       vj_perform_get_output_frame( uint8_t **frame );
 
@@ -76,5 +76,7 @@ void	vj_perform_follow_fade(int status);
 size_t	vj_perform_fx_chain_size();
 
 void	vj_perform_record_video_frame(veejay_t *info);
+
+void vj_perform_prec(veejay_t *info);
 
 #endif

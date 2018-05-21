@@ -2735,12 +2735,31 @@ void vj_perform_record_stop(veejay_t *info)
 			}
 			else
 			{
-
 				veejay_msg(VEEJAY_MSG_WARNING, "Not autoplaying new streams.");
 			}
 		}
 	}
 
+}
+
+/* performance recording - record what you see to disk */
+void vj_perform_prec(veejay_t *info)
+{
+	static uint64_t prevframe;
+
+	video_playback_setup *s= info->settings;
+	uint64_t lastframe = (uint64_t)s->lastframe_completion.tv_sec*1000000 + s->lastframe_completion.tv_nsec/1000;
+	int nframes = 0;
+
+	while(s->prec.start + (uint64_t)s->prec.frames_recorded * s->usec_per_frame < lastframe)
+	{
+		nframes++;
+		s->prec.frames_recorded++;
+	}
+	veejay_msg(VEEJAY_MSG_INFO, "output_fps %5.2f, usec_per_frame %4lu, current_frame %4d, %d frames recorded, lastframe %8lu, framesrec usec %lu, frametime %lu (~%5.2f calculated fps)",
+		s->output_fps, s->usec_per_frame, s->current_frame_num, nframes, lastframe - s->prec.start, (uint64_t)s->prec.frames_recorded * s->usec_per_frame, lastframe-prevframe, 1000000.0/(lastframe-prevframe));
+
+	prevframe = lastframe;
 }
 
 
@@ -3605,6 +3624,8 @@ void	vj_perform_record_video_frame(veejay_t *info)
 	//@ record frame
 	if( pvar_.enc_active )
 		vj_perform_record_frame(info);
+	if(info->settings->prec.recording)
+		vj_perform_prec(info);
 }
 
 int vj_perform_queue_video_frame(veejay_t *info, const int skip_incr)
