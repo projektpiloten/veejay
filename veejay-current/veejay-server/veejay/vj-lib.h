@@ -121,41 +121,41 @@ typedef struct {
     pthread_mutex_t syncinfo_mutex;
     pthread_t signal_thread;
     sigset_t signal_set;
-    struct timespec lastframe_completion;	/* software sync variable */
+    struct timespec lastframe_completion;	/* actual (non-monotonic) time of last frame */
     long old_field_len;
-    uint64_t save_list_len;		/* for editing purposes */
-    double spvf;			/* seconds per video frame */
-    int usec_per_frame;		/* microseconds per frame */
-	uint64_t playback_sync;	/* time in usec; increases in monotonic steps (usec_per_frame) */
-    int min_frame_num;		/* the lowest frame to be played back - normally 0 */
-    int max_frame_num;		/* the latest frame to be played back - normally num_frames - 1 */
-    int current_frame_num;	/* the current frame */
-    int current_playback_speed;	/* current playback speed */
-    int currently_processed_frame;	/* write index into buffer_entry */
+    uint64_t save_list_len;					/* for editing purposes */
+    double spvf;							/* seconds per video frame */
+    int usec_per_frame;						/* microseconds per video frame */
+	uint64_t playback_sync;					/* time in usec; increases in monotonic steps (usec_per_frame) */
+    int min_frame_num;						/* the lowest frame to be played back - normally 0 */
+    int max_frame_num;						/* the latest frame to be played back - normally num_frames - 1 */
+    int current_frame_num;					/* the current frame */
+    int current_playback_speed;				/* current playback speed */
+    int currently_processed_frame;			/* write index into buffer_entry */
     int currently_synced_frame;
-    int first_frame;			/* [0-1] whether we are playing the first frame of a sample. */
-    int valid[MJPEG_MAX_BUF];	/* num of frames to be played */
-    long buffer_entry[MJPEG_MAX_BUF];	/* double buffer written in veejay_mjpeg_playback_thread */
+    int first_frame;						/* [0-1] whether we are playing the first frame of a sample. */
+    int valid[MJPEG_MAX_BUF];				/* num of frames to be played */
+    long buffer_entry[MJPEG_MAX_BUF];		/* double buffer written in veejay_mjpeg_playback_thread */
     int render_entry;
     int render_list;
     /* int last_rendered_frame; */ /* not referenced anywhere */
     /* long rendered_frames; */ /* not referenced anywhere */
     long currently_processed_entry;
     struct mjpeg_sync syncinfo[MJPEG_MAX_BUF];	/* synchronization info */
-    uint64_t *save_list;			/* for editing purposes */
-    double spas;					/* seconds per audio sample */
-    int audio_mute;					/* controls whether to currently play audio or not */
-    int state;						/* playing, paused or stoppped */
-    int offline_ready;				/* no reference to this found anywhere */
-    int offline_record;				/* [0-1] whether currently recording from stream 'offline_tag_id' */
-    int offline_tag_id;				/* id of currently recorded stream */
-    int offline_created_sample;		/* [0-1] 1=autoplay newly created sample after VIMS_STREAM_OFFLINE_REC_STOP */
+    uint64_t *save_list;					/* for editing purposes */
+    double spas;							/* seconds per audio sample */
+    int audio_mute;							/* controls whether to currently play audio or not */
+    int state;								/* playing, paused or stoppped */
+    int offline_ready;						/* no reference to this found anywhere */
+    int offline_record;						/* [0-1] whether currently recording from stream 'offline_tag_id' */
+    int offline_tag_id;						/* id of currently recorded stream */
+    int offline_created_sample;				/* [0-1] 1=autoplay newly created sample after VIMS_STREAM_OFFLINE_REC_STOP */
     int sample_record;
     int sample_record_id;
     int sample_record_switch;
     int full_screen;
     int tag_record_switch;
-    int tag_record;					/* [0-1] 1=recording stream; set by VIMS_STREAM_REC_START */
+    int tag_record;							/* [0-1] 1=recording stream; set by VIMS_STREAM_REC_START */
     int dct_method;
     subsample_mode_t sample_mode;
 	int unicast_link_id;

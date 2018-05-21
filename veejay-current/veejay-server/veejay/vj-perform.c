@@ -1912,16 +1912,13 @@ static	int	vj_perform_get_frame_( veejay_t *info, int s1, long nframe, uint8_t *
 	{
 		if(info->uc->sample_id == s1 && info->uc->playback_mode == VJ_PLAYBACK_MODE_SAMPLE )
 		{
-
 			if( max_sfd <= 1 )
 			{
-
 				vj_perform_copy2( primary_buffer[0], img, info->effect_frame1->len, 	(info->effect_frame1->ssm ? info->effect_frame1->len : info->effect_frame1->uv_len ) );
-
 				return 1;
 			}
 
-			vj_perform_copy2( primary_buffer[7], img,  info->effect_frame1->len, 	(info->effect_frame1->ssm ? info->effect_frame1->len : info->effect_frame1->uv_len ) );
+			vj_perform_copy2( primary_buffer[7], img,  info->effect_frame1->len, 		(info->effect_frame1->ssm ? info->effect_frame1->len : info->effect_frame1->uv_len ) );
 			return 1;
 		}
 	}
@@ -1952,8 +1949,8 @@ static	int	vj_perform_get_frame_( veejay_t *info, int s1, long nframe, uint8_t *
 	long p0_frame = 0;
 	long p1_frame = 0;
 
-	long	start = ( s1 ? sample_get_startFrame(s1) : info->settings->min_frame_num);
-	long	end   = ( s1 ? sample_get_endFrame(s1) : info->settings->max_frame_num );
+	long start = ( s1 ? sample_get_startFrame(s1) : info->settings->min_frame_num);
+	long end   = ( s1 ? sample_get_endFrame(s1) : info->settings->max_frame_num );
 
 	if( cur_sfd == 0 )
 	{
@@ -1970,7 +1967,6 @@ static	int	vj_perform_get_frame_( veejay_t *info, int s1, long nframe, uint8_t *
 			vj_el_get_video_frame( el, p1_frame, p1_buffer );
 
 		vj_perform_copy3( p0_buffer, img, info->effect_frame1->len, uv_len );
-
 	}
 	else
 	{
@@ -2753,6 +2749,7 @@ void vj_perform_prec(veejay_t *info)
 
 	while(s->prec.start + (uint64_t)s->prec.frames_recorded * s->usec_per_frame < lastframe)
 	{
+		/* XXXXXXXXX write the frame here */
 		nframes++;
 		s->prec.frames_recorded++;
 	}
