@@ -70,7 +70,7 @@ typedef struct {
 	int h;
 	int palette;
 	int src_fmt;
-	int dst_fmt;		
+	int dst_fmt;
 	int native;
 	VJFrame *src;
 	VJFrame *dst;
@@ -134,7 +134,7 @@ typedef struct {
 } v4lvideo_template_t;
 
 static void	__v4lvideo_destroy( void *vv );
-static  const char             *get_palette_name( int v4l ); 
+static  const char             *get_palette_name( int v4l );
 static int	__v4lvideo_grabstart( void *vv );
 static int	__v4lvideo_grabstop(void *vv);
 static void	__v4lvideo_copy_framebuffer_to(v4lvideo_t *v1, v4lvideo_template_t *v2, uint8_t *dstY, uint8_t *dstU, uint8_t *dstV );
@@ -161,7 +161,7 @@ void *v4lvideo_init( char* file, int channel, int norm, int freq, int dst_w, int
 	v->len	    = dst_w * dst_h;
 	if( dst_palette == VIDEO_PALETTE_YUV422P ) {
 	 	v->uvlen = (dst_w/2) * dst_h;
-	} else if (dst_palette == VIDEO_PALETTE_YUV420) {	
+	} else if (dst_palette == VIDEO_PALETTE_YUV420) {
 		v->uvlen = (dst_w/2) * (dst_h/2);
 	} else {
 		veejay_msg(0, "Wrong palette: %s", get_palette_name(dst_palette));
@@ -188,7 +188,7 @@ int	v4lvideo_templ_get_palette( int p )
 	switch(p) {
 		case FMT_420: case FMT_420F:
 			return VIDEO_PALETTE_YUV420P;
-		case FMT_422: case FMT_422F:		
+		case FMT_422: case FMT_422F:
 			return VIDEO_PALETTE_YUV422P;
 		default:
 			return -1;
@@ -199,7 +199,7 @@ int	v4lvideo_templ_get_palette( int p )
 char	*v4lvideo_templ_get_norm_str( int id ) {
 	int i;
 	for( i = 0; normlists[i].type != -1; i ++ ) {
-		if( normlists[i].type == id ) 
+		if( normlists[i].type == id )
 			return normlists[i].name;
 	}
 	return "?";
@@ -218,7 +218,7 @@ int	v4lvideo_templ_get_norm( const char *name )
 	return -1;
 }
 
-int	v4lvideo_templ_getfreq( const char *name ) 
+int	v4lvideo_templ_getfreq( const char *name )
 {
 	int i;
 
@@ -231,7 +231,7 @@ int	v4lvideo_templ_getfreq( const char *name )
 	return -1;
 }
 
-int	v4lvideo_templ_num_devices() 
+int	v4lvideo_templ_num_devices()
 {
 	return device_count_;
 }
@@ -241,7 +241,7 @@ static struct {
 	const char *name;
 	const int ff;
 } palette_descr_[] =
-{	
+{
 	{ VIDEO_PALETTE_JPEG,      "JPEG Compressed", PIX_FMT_YUVJ420P },
 	{ VIDEO_PALETTE_RGB24 ,    "RGB 24 bit",	PIX_FMT_BGR24 	},
 	{ VIDEO_PALETTE_YUV422P ,  "YUV 4:2:2 Planar",	PIX_FMT_YUVJ422P  },
@@ -255,7 +255,7 @@ static struct {
 //@fixme: 16-235 yuv
 //
 static int is_YUV(int a) {
-	if( a == VIDEO_PALETTE_YUV422P || 
+	if( a == VIDEO_PALETTE_YUV422P ||
             a == VIDEO_PALETTE_YUV420P ||
 	    	a == VIDEO_PALETTE_YUV422  ||
             a == VIDEO_PALETTE_YUYV    ||
@@ -286,7 +286,7 @@ static	v4lvideo_t*	v4lvideo_templ_try( int num )
 	return v;
 }
 
-static	int		get_ffmpeg_palette( int v4l ) 
+static	int		get_ffmpeg_palette( int v4l )
 {
 	int i = 0;
 	while( palette_descr_[i].id != -1 ) {
@@ -297,7 +297,7 @@ static	int		get_ffmpeg_palette( int v4l )
 	return -1;
 }
 
-static	const char		*get_palette_name( int v4l ) 
+static	const char		*get_palette_name( int v4l )
 {
 	int i = 0;
 	while( palette_descr_[i].id != -1 ) {
@@ -312,7 +312,7 @@ static	int		v4lvideo_fun(v4lvideo_t *v, int w, int h, int palette, int *cap_pale
 {
 	int i = 0;
 	int supported_palette = -1;
-	
+
 	int is_jpeg[2]	      = {0,0};
 	while( palette_descr_[i].id != -1 ) {
 		if(palette_descr_[i].id == VIDEO_PALETTE_JPEG ) {
@@ -327,14 +327,14 @@ static	int		v4lvideo_fun(v4lvideo_t *v, int w, int h, int palette, int *cap_pale
 			__v4lvideo_grabstart(v);
 			if(v4lvideo_syncframe(v) == 0 ) {
 				uint8_t *src = v4lgetaddress(&(v->vd));
-				uint8_t *dst[3] = { tmp , tmp + (v->video_width*v->video_height), 
+				uint8_t *dst[3] = { tmp , tmp + (v->video_width*v->video_height),
 						    tmp + (2 * v->video_width * v->video_height) };
 				unsigned short *ptr = (unsigned short *)( src );
 				int count = (ssize_t)((unsigned int)(ptr[0])<<3);
 				int len = decode_jpeg_raw( src+2, count,0,420,v->video_width,v->video_height,dst[0],dst[1],dst[2] );
 				if(len >= 0 ) {
 					is_jpeg[0] = 1;
-					is_jpeg[1] = palette_descr_[i].id;	
+					is_jpeg[1] = palette_descr_[i].id;
 					veejay_msg(VEEJAY_MSG_DEBUG, "Device outputs in JPEG, but says %s",
 										palette_descr_[i].name );
 					supported_palette = VIDEO_PALETTE_JPEG;
@@ -354,14 +354,14 @@ static	int		v4lvideo_fun(v4lvideo_t *v, int w, int h, int palette, int *cap_pale
 		}
 		i++;
 	}
-	
+
 	*cap_palette 	   = is_jpeg[1];
 	*is_jpeg_frame     = is_jpeg[0];
 
 	return supported_palette;
 }
 
-static	v4lprocessing	*v4lvideo_get_processing( v4lvideo_t *v, int w, int h, int palette, int *cap_palette ) 
+static	v4lprocessing	*v4lvideo_get_processing( v4lvideo_t *v, int w, int h, int palette, int *cap_palette )
 {
 	int i = 0;
 	int supported_palette = -1;
@@ -380,7 +380,7 @@ static	v4lprocessing	*v4lvideo_get_processing( v4lvideo_t *v, int w, int h, int 
 		}
 	}
 
-	
+
 	if(!skip) {
 		while( palette_descr_[i].id != -1 ) {
 			if(v4lvideo_grab_check( v, palette_descr_[i].id ) == 0 ) {
@@ -416,14 +416,14 @@ static	v4lprocessing	*v4lvideo_get_processing( v4lvideo_t *v, int w, int h, int 
 
 	p->w = src_w;
 	p->h = src_h;
-	
+
 	if( palette == supported_palette && w == p->w && h == p->h) {
 		veejay_msg(VEEJAY_MSG_DEBUG, "No color space conversion required for this device.");
 		native = 1;
 	}
 
 	if( is_YUV( supported_palette )) {
-		p->src = yuv_yuv_template( NULL,NULL,NULL,p->w,p->h,p->src_fmt );	
+		p->src = yuv_yuv_template( NULL,NULL,NULL,p->w,p->h,p->src_fmt );
 	}
 	else {
 		if( supported_palette != VIDEO_PALETTE_JPEG ) {
@@ -432,14 +432,14 @@ static	v4lprocessing	*v4lvideo_get_processing( v4lvideo_t *v, int w, int h, int 
 			if(swaprgb!=NULL) {
 				int val = atoi(swaprgb);
 				if( val == 1 ) {
-				if( p->src_fmt == PIX_FMT_BGR24 ) 
+				if( p->src_fmt == PIX_FMT_BGR24 )
 					p->src_fmt = PIX_FMT_RGB24;
 				else if ( p->src_fmt == PIX_FMT_RGB24 )
 					p->src_fmt = PIX_FMT_BGR24;
 				veejay_msg(VEEJAY_MSG_DEBUG, "Swapped RGB format to %s",
 						(p->src_fmt==PIX_FMT_RGB24? "RGB" : "BGR" ));
 				}
-			}	
+			}
 			else {
 				veejay_msg(VEEJAY_MSG_DEBUG, "env VEEJAY_SWAP_RGB=[0|1] not set");
 			}
@@ -455,13 +455,13 @@ static	v4lprocessing	*v4lvideo_get_processing( v4lvideo_t *v, int w, int h, int 
 	p->dst = yuv_yuv_template( NULL,NULL,NULL, w, h, p->dst_fmt );
 
 	if(!skip)
-		*cap_palette = supported_palette; 
+		*cap_palette = supported_palette;
 
 	veejay_msg(VEEJAY_MSG_DEBUG,
 		"Capture device info: %dx%d - %dx%d  src=%s,dst=%s, is_YUV=%d, native =%d ",
 		min_w,min_h,max_w,max_h, get_palette_name(supported_palette), get_palette_name(palette), is_YUV(supported_palette), native );
 
-	return p;	
+	return p;
 }
 
 char	**v4lvideo_templ_get_devices(int *num)
@@ -495,7 +495,7 @@ char	**v4lvideo_templ_get_devices(int *num)
 		snprintf(filename,sizeof(filename),"/dev/video%s",items[i]);
 		snprintf(tmp,sizeof(tmp),"%03d%s%03d%s",strlen(name),name,strlen(filename),filename);
 		result[i] = strdup(tmp);
-	
+
 		free(items[i]);
 	}
 	free(items);
@@ -534,7 +534,7 @@ static int	__v4lvideo_init( v4lvideo_t *v, char *file, int channel, int norm, in
 {
 	if(file==NULL)
 		return -1;
-	
+
 	if ( v4lopen(file, &(v->vd)) ) {
 		//veejay_msg(0, "Unable to open capture device '%s' (no such device?)",
 		//			file );
@@ -577,7 +577,7 @@ static int	__v4lvideo_init( v4lvideo_t *v, char *file, int channel, int norm, in
 	v->video_height= h;
 	v->video_area  = w * h;
 
-	if ( v4lmaxchannel( &(v->vd) ) ) {	
+	if ( v4lmaxchannel( &(v->vd) ) ) {
 		if( v4lsetchannel( &(v->vd) , channel ) ) {
 			veejay_msg(VEEJAY_MSG_WARNING, "Unable to select channel %d", channel );
 		//	v4lclose(&(v->vd));
@@ -590,7 +590,7 @@ static int	__v4lvideo_init( v4lvideo_t *v, char *file, int channel, int norm, in
 		v4lclose(&(v->vd));
 		return -1;
 	}
-	
+
 	if( v4lgrabinit( &(v->vd), v->video_width,v->video_height ) ) {
 		v4lclose(&(v->vd));
 		return -1;
@@ -602,9 +602,9 @@ static int	__v4lvideo_init( v4lvideo_t *v, char *file, int channel, int norm, in
 		return -1;
 	}
 
-	/* detect pixel format */	
+	/* detect pixel format */
 
-	v->info       = v4lvideo_get_processing( v, dst_w, dst_h, dst_palette, &(v->video_palette) ); 
+	v->info       = v4lvideo_get_processing( v, dst_w, dst_h, dst_palette, &(v->video_palette) );
 	if(v->info == NULL ) {
 		veejay_msg(0, "No support for this device.");
 		v4lclose(&(v->vd));
@@ -627,13 +627,13 @@ static int	__v4lvideo_init( v4lvideo_t *v, char *file, int channel, int norm, in
 
 	veejay_memset( &(v->sws_templ), 0,sizeof(sws_template));
 	v->sws_templ.flags = yuv_which_scaler();
-	
+
 	v->native     = v->info->native;
 
 	return 1;
 }
 
-void	v4lvideo_set_paused(void *vv, int pause) 
+void	v4lvideo_set_paused(void *vv, int pause)
 {
 	v4lvideo_template_t *v = (v4lvideo_template_t*) vv;
 	lock_(v);
@@ -693,13 +693,13 @@ static	int	v4lvideo_set_grabformat( v4lvideo_t *v, int palette )
 int	v4lvideo_grab_check(v4lvideo_t *v, int palette ) {
 	int ret=0;
 	v4lseterrorlevel( V4L_PERROR_NONE );
-	if( v4lvideo_set_grabformat(v, palette ) ) {	
+	if( v4lvideo_set_grabformat(v, palette ) ) {
 		ret = -1;
 		goto VIDEOEXIT;
 	}
 
 	if( v4lgrabstart( &(v->vd),0) < 0 ) {
-		ret = -1;	
+		ret = -1;
 		goto VIDEOEXIT;
 	}
 	ret = v4lsync( &(v->vd),0);
@@ -709,7 +709,7 @@ VIDEOEXIT:
 	return ret;
 }
 
-static	void	__v4lvideo_draw_error_pattern(v4lvideo_template_t *v, 
+static	void	__v4lvideo_draw_error_pattern(v4lvideo_template_t *v,
 				uint8_t *dstY, uint8_t *dstU, uint8_t *dstV)
 {
 	lock_(v);
@@ -719,7 +719,7 @@ static	void	__v4lvideo_draw_error_pattern(v4lvideo_template_t *v,
 	unlock_(v);
 }
 
-static	void	*v4lvideo_grabber_thread( void * vv ) 
+static	void	*v4lvideo_grabber_thread( void * vv )
 {
 	pthread_setcancelstate(PTHREAD_CANCEL_ENABLE, NULL);
 	pthread_setcanceltype(PTHREAD_CANCEL_ASYNCHRONOUS, NULL);
@@ -727,7 +727,7 @@ static	void	*v4lvideo_grabber_thread( void * vv )
 	v4lvideo_t *v = (v4lvideo_t*) vj_calloc(sizeof(v4lvideo_t));
 	lock_(i);
 	i->v4l = (void*) v;
-	
+
 	if( __v4lvideo_init( v, i->filename, i->channel, i->norm,i->frequency, i->width, i->height, i->palette ) < 0 ) {
 		veejay_msg(0, "Unable to open capture device '%s' in %dx%d - %s",
 			i->filename, v->video_width,v->video_height,get_palette_name(v->video_palette) );
@@ -741,7 +741,7 @@ static	void	*v4lvideo_grabber_thread( void * vv )
 
 	veejay_msg(VEEJAY_MSG_INFO, "Capture device looks ready to go!");
 	v4lprint( &(v->vd));
-	
+
 /*	if( __v4lvideo_grabstart( v ) != 0 ) {
 		veejay_msg(0, "Unable to start grabbing from device '%s'", i->filename);
 		pthread_exit(NULL);
@@ -771,7 +771,7 @@ PAUSED:
 				__v4lvideo_grabstop( v );
 			}
 			unlock_(i);
-			clock_nanosleep( CLOCK_REALTIME,0,&req, NULL);
+			clock_nanosleep( SYNC_CLOCK,0,&req, NULL);
 			goto PAUSED;
 		} else {
 			if(!v->grabbing) {
@@ -779,12 +779,12 @@ PAUSED:
 				veejay_msg(VEEJAY_MSG_DEBUG, "Trying to start capturing.");
 				__v4lvideo_grabstart(v);
 				unlock_(i);
-				clock_nanosleep(CLOCK_REALTIME,0,&req, NULL );
+				clock_nanosleep(SYNC_CLOCK,0,&req, NULL );
 				goto RESTART;
 			}
 		}
-		
-	
+
+
 		if(v->grabbing) {
 			flag = v4lvideo_syncframe(v);
 
@@ -808,8 +808,8 @@ PAUSED:
 			v4lvideo_grabframe(v);
 			goto RESTART;
 		}
-	
-	
+
+
 /*
 		if(!v->grabbing || flag < 0 ) {
 			__v4lvideo_draw_error_pattern( i, dstY, dstU,dstV );
@@ -828,7 +828,7 @@ CAPTURE_STOP:
 int	v4lvideo_grabstop( void *vv )
 {
 	v4lvideo_template_t *t = (v4lvideo_template_t*) vv;
-	lock_( vv );	
+	lock_( vv );
 	v4lvideo_t *v = (v4lvideo_t*) t->v4l;
 	v->active = 0;
 	unlock_(vv);
@@ -858,14 +858,14 @@ int	v4lvideo_grabstart( void *vv )
 static int	__v4lvideo_grabstart( void *vv )
 {
 	v4lvideo_t *v = (v4lvideo_t*) vv;
-	
+
 	v->vd.frame = 0;
 	if( v4lgrabstart( &(v->vd), 0 ) < 0 ) {
-		veejay_msg(0, "Failed to grab frame 0");	
+		veejay_msg(0, "Failed to grab frame 0");
 		return -1;
 	}
 	if( v4lgrabstart( &(v->vd), 1 ) < 0 ) {
-		veejay_msg(0, "Failed to grab frame 1");	
+		veejay_msg(0, "Failed to grab frame 1");
 		return -1;
 	}
 	v->grabbing = 1;
@@ -876,7 +876,7 @@ static int	__v4lvideo_grabstop( void *vv )
 {
 	v4lvideo_t *v = (v4lvideo_t*) vv;
 	if( v->vd.framestat[v->vd.frame] ) {
-		if(v4lsync( &(v->vd), v->vd.frame ) < 0 )	
+		if(v4lsync( &(v->vd), v->vd.frame ) < 0 )
 			return -1;
 	}
 	if( v->vd.framestat[v->vd.frame ^ 1 ]) {
@@ -903,11 +903,11 @@ int	v4lvideo_copy_framebuffer_to( void *vv, uint8_t *dstY, uint8_t *dstU, uint8_
 {
 	v4lvideo_template_t *v = (v4lvideo_template_t*) vv;
 	lock_(v);
-	if(!v->status) {	
+	if(!v->status) {
 		unlock_(v);
 		return -1;
 	}
-	
+
 	if(!v->v4l ) {
 		unlock_(v);
 		return 0;
@@ -955,8 +955,8 @@ static void	__v4lvideo_copy_framebuffer_to(v4lvideo_t *v1, v4lvideo_template_t *
 		srcf->data[2] = src + srcf->len + srcf->uv_len;
 
 
-		if(!v1->scaler) 
-			v1->scaler = 
+		if(!v1->scaler)
+			v1->scaler =
 				yuv_init_swscaler( srcf,dstf,&(v1->sws_templ), yuv_sws_get_cpu_flags());
 		//lock_(v2);
 			yuv_convert_and_scale( v1->scaler, srcf, dstf );
@@ -977,10 +977,10 @@ static void	__v4lvideo_copy_framebuffer_to(v4lvideo_t *v1, v4lvideo_template_t *
 		VJFrame *dstf = v1->info->dst;
 		unsigned short *ptr = (unsigned short *)( src );
 		int count = (ssize_t)((unsigned int)(ptr[0])<<3);
-		int len = decode_jpeg_raw( src+2, count,0,420,srcf->width,srcf->height,tmp[0],tmp[1],tmp[2] ); 
+		int len = decode_jpeg_raw( src+2, count,0,420,srcf->width,srcf->height,tmp[0],tmp[1],tmp[2] );
 		//420 dat
-		if(!v1->scaler) 
-			v1->scaler = 
+		if(!v1->scaler)
+			v1->scaler =
 				yuv_init_swscaler( srcf,dstf,&(v1->sws_templ), yuv_sws_get_cpu_flags());
 
 		dstf->data[0] = dstY;
@@ -1008,19 +1008,19 @@ static void	__v4lvideo_copy_framebuffer_to(v4lvideo_t *v1, v4lvideo_template_t *
 			srcf->data[0] = src;
 			srcf->data[1] = src + srcf->len;
 			srcf->data[2] = src + srcf->len + srcf->uv_len;
-				
+
 		} else {*/
 			srcf->data[0] = v4lgetaddress(&(v1->vd));
-			if(!v1->scaler) 
-				v1->scaler = 
+			if(!v1->scaler)
+				v1->scaler =
 					yuv_init_swscaler( srcf,dstf,&(v1->sws_templ), yuv_sws_get_cpu_flags());
-			
+
 			//lock_(v2);
 			yuv_convert_and_scale_from_rgb( v1->scaler, srcf, dstf );
 			v1->has_video = 1;
 
 			//unlock_(v2);
-	//	}	
+	//	}
 	}
 //	v1->has_video = 1;
 }
@@ -1037,29 +1037,29 @@ int	v4lvideo_setfreq( void *vv, int f )
 		v->tvchannel %= chanlists[v->freqtable].count;
 
 		return v4lsetfreq( &(v->vd), chanlists[v->freqtable].list[v->tvchannel].freq );
-	} 
+	}
 	return 0;
 }
 #define MAXVAL 65535
-int	v4lvideo_get_brightness( void *vvv ) 
+int	v4lvideo_get_brightness( void *vvv )
 {
 	v4lvideo_template_t *vv = (v4lvideo_template_t*) vvv;
 	v4lvideo_t *v = (v4lvideo_t*) vv->v4l;
 	return v->brightness;
 }
-int	v4lvideo_get_hue( void *vvv ) 
+int	v4lvideo_get_hue( void *vvv )
 {
 	v4lvideo_template_t *vv = (v4lvideo_template_t*) vvv;
 	v4lvideo_t *v = (v4lvideo_t*) vv->v4l;
 	return v->hue;
 }
-int	v4lvideo_get_colour( void *vvv ) 
+int	v4lvideo_get_colour( void *vvv )
 {
 	v4lvideo_template_t *vv = (v4lvideo_template_t*) vvv;
 	v4lvideo_t *v = (v4lvideo_t*) vv->v4l;
 	return v->colour;
 }
-int	v4lvideo_get_contrast( void *vvv ) 
+int	v4lvideo_get_contrast( void *vvv )
 {
 	v4lvideo_template_t *vv = (v4lvideo_template_t*) vvv;
 	v4lvideo_t *v = (v4lvideo_t*) vv->v4l;

@@ -45,9 +45,9 @@
 #define OUTFILE stderr
 
 #define DEBUG(format,args...) veejay_msg(4, "bio2jack: "format,##args);
-#define WARN(format,args...) veejay_msg(1, "bio2jack: "format,##args);	
+#define WARN(format,args...) veejay_msg(1, "bio2jack: "format,##args);
 
-#define ERR(format,args...) veejay_msg(0, "bio2jack: "format,##args);	
+#define ERR(format,args...) veejay_msg(0, "bio2jack: "format,##args);
 #define min(a,b)   (((a) < (b)) ? (a) : (b))
 #define max(a,b)   (((a) < (b)) ? (b) : (a))
 
@@ -116,8 +116,8 @@ typedef struct jack_driver_s
   jack_ringbuffer_t *pPlayPtr;  /* the playback ringbuffer */
   jack_ringbuffer_t *pRecPtr;   /* the recording ringbuffer */
 /*
-  SRC_STATE *output_src;        
-  SRC_STATE *input_src;    
+  SRC_STATE *output_src;
+  SRC_STATE *input_src;
 */
 
   enum status_enum state;       /* one of PLAYING, PAUSED, STOPPED, CLOSED, RESET etc */
@@ -213,7 +213,7 @@ TimeValDifference( struct timespec *start, struct timespec *end)
    trying to trace mutexes it's more important to know *who* called us than just that
    we were called.  This uses from pre-processor trickery so that the fprintf is actually
    placed in the function making the getDriver call.  Thus, the __FUNCTION__ and __LINE__
-   macros will actually reference our caller, rather than getDriver.  The reason the 
+   macros will actually reference our caller, rather than getDriver.  The reason the
    fprintf call is passes as a parameter is because this macro has to still return a
    jack_driver_t* and we want to log both before *and* after the getDriver call for
    easier detection of blocked calls.
@@ -227,7 +227,7 @@ getDriver(int deviceID)
   if(drv->jackd_died && drv->client == 0)
   {
 	struct timespec now;
-	clock_gettime( CLOCK_REALTIME, &now);
+	clock_gettime( SYNC_CLOCK, &now);
 
     /* wait 250ms before trying again */
     if(TimeValDifference(&drv->last_reconnect_attempt, &now) >= 250)
@@ -389,7 +389,7 @@ JACK_xrun_callback(void *arg)
 
 
   JACK_SetState( drv->deviceID, RESET );
-  
+
   drv->written_client_bytes = wcb;
   drv->played_client_bytes = pcb;
 
@@ -406,10 +406,10 @@ JACK_xrun_callback(void *arg)
 
 /*
  * jack ringbuffer is supposed to be free of threading problems...
- * The key attribute of a ringbuffer is that it can be safely accessed by two threads simultaneously 
- * -- one reading from the buffer and t the other writing to it 
- * -- without using any synchronization or mutual exclusion primitives. For this to work correctly, 
- *there can only be a single reader and a single writer thread. Their identities cannot be interchanged. 
+ * The key attribute of a ringbuffer is that it can be safely accessed by two threads simultaneously
+ * -- one reading from the buffer and t the other writing to it
+ * -- without using any synchronization or mutual exclusion primitives. For this to work correctly,
+ *there can only be a single reader and a single writer thread. Their identities cannot be interchanged.
  *
  */
 static int
@@ -419,7 +419,7 @@ JACK_callback(nframes_t nframes, void *arg)
   struct timespec tmp_tp;
   unsigned int i;
 
-  clock_gettime(CLOCK_REALTIME, &tmp_tp );
+  clock_gettime(SYNC_CLOCK, &tmp_tp );
 
   __sync_lock_test_and_set( &(drv->previousTime.tv_sec), tmp_tp.tv_sec );
   __sync_lock_test_and_set( &(drv->previousTime.tv_nsec), tmp_tp.tv_nsec );
@@ -490,13 +490,13 @@ JACK_callback(nframes_t nframes, void *arg)
      // drv->written_client_bytes += read;
      // drv->played_client_bytes += drv->clientBytesInJack;       /* move forward by the previous bytes we wrote since those must have finished by now */
       drv->clientBytesInJack = read;    /* record the input bytes we wrote to jack */
-	
+
       /* see if we still have jackBytesLeft here, if we do that means that we
          ran out of wave data to play and had a buffer underrun, fill in
          the rest of the space with zero bytes so at least there is silence */
       if(jackFramesAvailable)
       {
-        DEBUG("buffer underrun of %ld frames", jackFramesAvailable);		
+        DEBUG("buffer underrun of %ld frames", jackFramesAvailable);
   	    for(i = 0; i < drv->num_output_channels; i++)
           sample_silence_float(out_buffer[i] +
                                (nframes - jackFramesAvailable),
@@ -513,8 +513,8 @@ JACK_callback(nframes_t nframes, void *arg)
 
               if(drv->volumeEffectType == dbAttenuation)
               {
-                  // assume the volume setting is dB of attenuation, a volume of 0 
-                  // is 0dB attenuation 
+                  // assume the volume setting is dB of attenuation, a volume of 0
+                  // is 0dB attenuation
                   float volume = powf(10.0, -((float) drv->volume[i]) / 20.0);
                   float_volume_effect((sample_t *) drv->callback_buffer2 + i,
                                       (nframes - jackFramesAvailable), volume, drv->num_output_channels);
@@ -525,7 +525,7 @@ JACK_callback(nframes_t nframes, void *arg)
                                       drv->num_output_channels);
               }
           }
-	} 
+	}
 	if( !(drv->output_sample_rate_ratio != 1.0))
 	{
           /* demux the stream: we skip over the number of samples we have output channels as the channel data */
@@ -573,7 +573,7 @@ JACK_callback(nframes_t nframes, void *arg)
         jack_ringbuffer_write(drv->pRecPtr, drv->callback_buffer1,
                               jack_bytes);
     }
- 
+
   return 0;
 }
 
@@ -632,15 +632,15 @@ JACK_shutdown(void *arg)
 #endif
 
   DEBUG("trying to reconnect right now");
-  
+
   /* lets see if we can't reestablish the connection */
-  
+
   //@ doesnt work anymore.
   /*if(JACK_OpenDevice(drv) != ERR_SUCCESS)
   {
     ERR("unable to reconnect with jack");
   }*/
-  
+
   ERR("unable to reconnect with jack");
 
   veejay_msg(VEEJAY_MSG_ERROR, "Cannot recover from this error! You will probably need to restart for Audio playback.");
@@ -701,7 +701,7 @@ JACK_OpenDevice(jack_driver_t * drv)
           drv->deviceID, drv->clientCtr++);
 
   /* try to become a client of the JACK server */
-  DEBUG("client name '%s'", our_client_name); 
+  DEBUG("client name '%s'", our_client_name);
 #ifndef HAVE_JACK2
     if((drv->client = jack_client_new(our_client_name)) == 0)
 #else
@@ -725,7 +725,7 @@ JACK_OpenDevice(jack_driver_t * drv)
   free(our_client_name);
 
   drv->client_sample_rate = jack_get_sample_rate(drv->client);
- 
+
   /* JACK server to call `JACK_callback()' whenever
      there is work to be done. */
   jack_set_process_callback(drv->client, JACK_callback, drv);
@@ -1124,7 +1124,7 @@ JACK_Reset(int deviceID)
  * deviceID is set to the opened device
  * if client is non-zero and in_use is FALSE then just set in_use to TRU
  *
- * return value is zero upon success, non-zero upon failure 
+ * return value is zero upon success, non-zero upon failure
  *
  * if ERR_RATE_MISMATCH (*rate) will be updated with the jack servers rate
  */
@@ -1220,7 +1220,7 @@ JACK_OpenEx(int *deviceID, unsigned int bits_per_channel,
   drv->jack_output_port_flags = jack_port_flags | JackPortIsInput;      /* port must be input(ie we can put data into it), so mask this in */
   drv->jack_input_port_flags = jack_port_flags | JackPortIsOutput;      /* port must be output(ie we can get data from it), so mask this in */
 
-  /* check that we have the correct number of port names 
+  /* check that we have the correct number of port names
      FIXME?: not sure how we should handle output ports vs input ports....
    */
   if((jack_port_name_count > 1)
@@ -1404,7 +1404,7 @@ JACK_Write(int deviceID, unsigned char *data, unsigned long bytes)
     jack_ringbuffer_write_space(drv->pPlayPtr) /
     drv->bytes_per_jack_output_frame;
   frames = bytes / drv->bytes_per_output_frame;
-  /* if we are currently STOPPED we should start playing now... 
+  /* if we are currently STOPPED we should start playing now...
      do this before the check for bytes == 0 since some clients like
      to write 0 bytes the first time out */
   if(drv->state == STOPPED)
@@ -1871,7 +1871,7 @@ JACK_GetPositionFromDriver(jack_driver_t * drv, enum pos_enum position,
 //    type_str = "PLAYED";
     return_val = drv->played_client_bytes;
 //    gettimeofday(&now, 0);
-    clock_gettime( CLOCK_REALTIME, &now );
+    clock_gettime( SYNC_CLOCK, &now );
 
     elapsedMS = TimeValDifference(&drv->previousTime, &now);    /* find the elapsed milliseconds since last JACK_Callback() */
 
@@ -1886,7 +1886,7 @@ JACK_GetPositionFromDriver(jack_driver_t * drv, enum pos_enum position,
       return_val += (long) ((double) elapsedMS *
                             ((double) JACK_GetOutputBytesPerSecondFromDriver(drv) /
                              sec2msFactor));
-    } 
+    }
   }
 
   /* add on the offset */
@@ -2057,7 +2057,7 @@ JACK_CleanupDriver(jack_driver_t * drv)
   drv->output_sample_rate_ratio = 1.0;
   drv->input_sample_rate_ratio = 1.0;
   drv->jackd_died = FALSE;
-  clock_gettime(CLOCK_REALTIME, &drv->previousTime);  /* record the current time */
+  clock_gettime(SYNC_CLOCK, &drv->previousTime);  /* record the current time */
   memcpy( &drv->last_reconnect_attempt, &drv->previousTime, sizeof(struct timespec));
 }
 
@@ -2218,7 +2218,7 @@ long JACK_OutputStatus(int deviceID,long *sec, long *usec)
 	*sec =	this->previousTime.tv_sec;
 	*usec = this->previousTime.tv_nsec;
 
-	//	return (this->ticks * this->chunk_size); 
+	//	return (this->ticks * this->chunk_size);
 	return ( this->written_client_bytes / this->bytes_per_output_frame);
 }
 

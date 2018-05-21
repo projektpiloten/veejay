@@ -124,15 +124,16 @@ typedef struct {
     struct timespec lastframe_completion;	/* software sync variable */
     long old_field_len;
     uint64_t save_list_len;		/* for editing purposes */
-    double spvf;		/* seconds per video frame */
+    double spvf;			/* seconds per video frame */
     int usec_per_frame;		/* microseconds per frame */
+	uint64_t playback_sync;	/* time in usec; increases in monotonic steps (usec_per_frame) */
     int min_frame_num;		/* the lowest frame to be played back - normally 0 */
     int max_frame_num;		/* the latest frame to be played back - normally num_frames - 1 */
     int current_frame_num;	/* the current frame */
     int current_playback_speed;	/* current playback speed */
     int currently_processed_frame;	/* write index into buffer_entry */
     int currently_synced_frame;
-    int first_frame;		/* software sync variable */
+    int first_frame;			/* [0-1] whether we are playing the first frame of a sample. */
     int valid[MJPEG_MAX_BUF];	/* num of frames to be played */
     long buffer_entry[MJPEG_MAX_BUF];	/* double buffer written in veejay_mjpeg_playback_thread */
     int render_entry;

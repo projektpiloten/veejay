@@ -1056,43 +1056,67 @@ static int veejay_screen_update(veejay_t * info )
  *     timestamp frame with actual completion time
  *     (after any deliberate sleeps etc)
  *
- * return value: 1 on success, 0 on error
  ******************************************************/
 
-static void veejay_mjpeg_software_frame_sync(veejay_t * info,
-					      int frame_periods)
+static void veejay_mjpeg_software_frame_sync(veejay_t * info, int frame_periods)
 {
-    video_playback_setup *settings =
-	(video_playback_setup *) info->settings;
+	video_playback_setup *s = (video_playback_setup *) info->settings;
 
-	if (info->uc->use_timer ) {
+	if(!s->playback_sync)
+	{
+		struct timespec now;
+		clock_gettime(SYNC_CLOCK, &now);
+		s->playback_sync = (now.tv_sec * 1000000 + now.tv_nsec / 1000);
+	}
+
+	s->playback_sync += frame_periods * s->usec_per_frame;
+
+	struct timespec sleep_until = { s->playback_sync / 1000000, (s->playback_sync * 1000) % 1000000000 };
+
+	// veejay_msg(VEEJAY_MSG_DEBUG, "veejay_mjpeg_software_frame_sync frame_periods=%d, lastsync=%lu", frame_periods, s->playback_sync);
+
+	/* don't care about EINTR for now */
+	clock_nanosleep(SYNC_CLOCK, TIMER_ABSTIME, &sleep_until, NULL);
+
+	s->first_frame = 0;
+	clock_gettime(SYNC_CLOCK, &s->lastframe_completion);
+	s->syncinfo[s->currently_processed_frame].timestamp = s->lastframe_completion;
+
+/*
+	video_playback_setup *settings = (video_playback_setup *) info->settings;
+
+	if (info->uc->use_timer )
+	{
 		struct timespec now;
 		struct timespec nsecsleep;
 
 		int usec_since_lastframe=0;
-		for (;;) {
-			clock_gettime( CLOCK_REALTIME, &now );
+		for (;;)
+		{
+			clock_gettime( SYNC_CLOCK, &now );
 
 			usec_since_lastframe = (now.tv_nsec - settings->lastframe_completion.tv_nsec)/1000;
 
 			if (usec_since_lastframe < 0)
 				usec_since_lastframe += 1000000;
-	  		if (now.tv_sec > settings->lastframe_completion.tv_sec + 1)
+			if (now.tv_sec > settings->lastframe_completion.tv_sec + 1)
 				usec_since_lastframe = 1000000;
 
-	   		if (settings->first_frame || (frame_periods * settings->usec_per_frame - usec_since_lastframe) < (1000000 / HZ)) {
+			if (settings->first_frame || (frame_periods * settings->usec_per_frame - usec_since_lastframe) < (1000000 / HZ))
+			{
 				break;
 			}
 
 			nsecsleep.tv_nsec = (settings->usec_per_frame - usec_since_lastframe -  1000000 / HZ) * 1000;
-	    		nsecsleep.tv_sec = 0;
-	    		clock_nanosleep(CLOCK_REALTIME,0, &nsecsleep, NULL);
+			nsecsleep.tv_sec = 0;
+			clock_nanosleep(SYNC_CLOCK,0, &nsecsleep, NULL);
 		}
-    }
+	}
 
-    settings->first_frame = 0;
-    clock_gettime( CLOCK_REALTIME, &(settings->lastframe_completion) );
-    settings->syncinfo[settings->currently_processed_frame].timestamp = settings->lastframe_completion;
+	settings->first_frame = 0;
+	clock_gettime( SYNC_CLOCK, &(settings->lastframe_completion) );
+	settings->syncinfo[settings->currently_processed_frame].timestamp = settings->lastframe_completion;
+*/
 }
 
 void veejay_pipe_write_status(veejay_t * info)
@@ -2199,7 +2223,7 @@ static void veejay_playback_cycle(veejay_t * info)
 	editlist *el = info->edit_list;
 	struct mjpeg_sync bs;
 	struct timespec time_now;
-	struct timespec time_last;
+	/* struct timespec time_last; */ /* unused */
 	double tdiff1=0.0, tdiff2=0.0;
 	int first_free, skipv, skipa, skipi, nvcorr,frame;
 	long ts, te;
@@ -2318,7 +2342,7 @@ static void veejay_playback_cycle(veejay_t * info)
 			frame = bs.frame;
 
 			stats.nsync++;
-			clock_gettime( CLOCK_REALTIME, &time_now);
+			clock_gettime( SYNC_CLOCK, &time_now);
 
 			long  d1 = (time_now.tv_sec * 1000000000) + time_now.tv_nsec;
 			long  n1 = (bs.timestamp.tv_sec * 1000000000) +  bs.timestamp.tv_nsec;

@@ -1,5 +1,5 @@
 /* veejay - Linux VeeJay
- * 	     (C) 2002-2007 Niels Elburg <nwelburg@gmail.com> 
+ * 	     (C) 2002-2007 Niels Elburg <nwelburg@gmail.com>
  *
  *
  * This program is free software; you can redistribute it and/or modify
@@ -20,6 +20,7 @@
 #define VJ_COMMON_H
 #include <stdarg.h>
 #include <stdint.h>
+#include <signal.h>
 
 enum {
     VEEJAY_MSG_INFO = 2,
@@ -29,7 +30,7 @@ enum {
     VEEJAY_MSG_DEBUG = 4,
 };
 
-extern void veejay_backtrace_handler(int n , void *ist, void *x);
+extern void veejay_backtrace_handler(int n, siginfo_t *dist, void *x);
 extern void veejay_strrep(char *s, char delim, char tok);
 extern void report_bug();
 extern void veejay_msg(int type, const char format[], ...);

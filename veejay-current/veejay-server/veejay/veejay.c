@@ -1,5 +1,5 @@
 /* veejay - Linux VeeJay
- * 	     (C) 2002-2010 Niels Elburg <nwelburg@gmail.com> 
+ * 	     (C) 2002-2010 Niels Elburg <nwelburg@gmail.com>
  *
  *
  * This program is free software; you can redistribute it and/or modify
@@ -47,7 +47,7 @@
 #include <unistd.h>
 #include <veejay/vj-OSC.h>
 #include <build.h>
-extern void	veejay_init_msg_ring(); 
+extern void	veejay_init_msg_ring();
 extern void vj_libav_ffmpeg_version();
 static veejay_t *info = NULL;
 static float override_fps = 0.0;
@@ -66,11 +66,13 @@ static int max_mem_ = 0;
 static int live =0;
 static int ta = 0;
 
+#define SYNC_CLOCK	CLOCK_MONOTONIC
+
 static void CompiledWith()
 {
 	fprintf(stdout,"This is Veejay %s\n\n", VERSION);
 
-	fprintf(stdout,    
+	fprintf(stdout,
 		"Build for %s/%s arch %s on %s\n",
 	    BUILD_OS,
 	    BUILD_KERNEL,
@@ -112,7 +114,7 @@ static void CompiledWith()
 #ifdef HAVE_ASM_MMX
 	fprintf(stdout,"\tMMX\n");
 #endif
-#ifdef HAVE_ASM_MMX2	
+#ifdef HAVE_ASM_MMX2
 	fprintf(stdout,"\tMMX2\n");
 #endif
 #ifdef HAVE_ASM_3DNOW
@@ -121,7 +123,7 @@ static void CompiledWith()
 #ifdef HAVE_ASM_AVX
 	fprintf(stdout,"\tAVX\n");
 #endif
-	
+
 	memcpy_report();
 
 	fprintf(stdout,"Dependencies:\n");
@@ -205,7 +207,7 @@ static void Usage(char *progname)
 	fprintf(stderr,
 			"  -T/--multicast-vims \t\tmulticast VIMS\n");
  	fprintf(stderr,
-			"  -m/--memory <num>\t\tMaximum memory to use for cache (0=disable, default=0 max=100)\n");  
+			"  -m/--memory <num>\t\tMaximum memory to use for cache (0=disable, default=0 max=100)\n");
 	fprintf(stderr,
 			"  -j/--max_cache <num>\t\tDivide cache memory over N samples (default=0)\n");
 	fprintf(stderr,
@@ -233,7 +235,7 @@ static void Usage(char *progname)
 	fprintf(stderr,
 			"  -F/--action-file <file name>\tLoad an action file (none at default)\n");
 	fprintf(stderr,
-			"  -g/--clip-as-sample\t\tLoad every video clip as a new sample\n");	
+			"  -g/--clip-as-sample\t\tLoad every video clip as a new sample\n");
 	fprintf(stderr,
 	    	"  -a/--audio [01]\t\tEnable (1) or disable (0) audio (default 1)\n");
     fprintf(stderr,
@@ -255,7 +257,7 @@ static void Usage(char *progname)
 #endif
 #endif
 	fprintf(stderr,
-			"\t\t\t\t3 = Head less (no video output)\n");	
+			"\t\t\t\t3 = Head less (no video output)\n");
 	fprintf(stderr,
 			"\t\t\t\t4 = Y4M Stream 4:2:0 (requires -o <filename>)\n");
 	fprintf(stderr,
@@ -275,8 +277,8 @@ static void Usage(char *progname)
 		"  --no-keyboard\t\t\tdisable keyboard for SDL video window\n");
 	fprintf(stderr,
 		"  --no-mouse\t\t\tdisable mouse for SDL video window\n");
-	fprintf(stderr, 
-		"  --show-cursor\t\t\tshow mouse cursor in SDL video window\n");	
+	fprintf(stderr,
+		"  --show-cursor\t\t\tshow mouse cursor in SDL video window\n");
 #endif
 	fprintf(stderr,
 		"  -A/--all [num] \t\tStart with capture device <num> \n");
@@ -293,7 +295,7 @@ static void Usage(char *progname)
    	fprintf(stderr,
 		"  -r/--audiorate <num>\t\tSet audio rate (defaults to 48Khz)\n");
 	fprintf(stderr,
-	    "  -I/--deinterlace\t\tDeinterlace video if it is interlaced\n");    
+	    "  -I/--deinterlace\t\tDeinterlace video if it is interlaced\n");
 	fprintf(stderr,
 		"  -N/--norm <num>\t\tSet video norm [0=PAL, 1=NTSC, 2=SECAM (defaults to PAL)]\n");
 	fprintf(stderr,
@@ -302,7 +304,7 @@ static void Usage(char *progname)
 		"  -h/--output-height <num>\tSet output video height (Projection)\n");
 	fprintf(stderr,
 		"  --benchmark NxN\t\tveejay benchmark using NxN resolution\n");
-#ifdef HAVE_QRENCODE  
+#ifdef HAVE_QRENCODE
 	fprintf(stderr,
 		"  --qrcode-connection-info\tEncode veejay's external IP and port number into QR code\n" );
 #endif
@@ -391,7 +393,7 @@ static int set_option(const char *name, char *value)
 	       || strcmp(name, "c") == 0) {
 	info->sync_correction = atoi(optarg);
 	} else if (strcmp(name, "version") == 0 )
-	{ printf("Veejay %s\n", VERSION); exit(0); 
+	{ printf("Veejay %s\n", VERSION); exit(0);
     } else if (strcmp(name, "graphics-driver") == 0
 	       || strcmp(name, "G") == 0
 	       || strcmp(name, "output") == 0
@@ -425,7 +427,7 @@ static int set_option(const char *name, char *value)
 		if( n != 2 || value == NULL ) {
 			fprintf(stderr,"  --benchmark parameter requires NxN argument\n");
 		    	nerr++;
-		} 
+		}
 		if( n == 2 ) {
 		    benchmark_veejay(w,h);
 		    exit(0);
@@ -486,7 +488,7 @@ static int set_option(const char *name, char *value)
 	}
 	else if(strcmp(name, "norm") == 0 || strcmp(name, "N") == 0 ) {
 		int val = atoi(optarg);
-		if(val == 1 )	
+		if(val == 1 )
 			override_norm = 'n';
 		if(val == 0 )
 			override_norm = 'p';
@@ -529,7 +531,7 @@ static int set_option(const char *name, char *value)
 		info->continuous = 0;
 	}
 	else if (strcmp(name, "clip-as-sample") == 0 || strcmp(name, "g") == 0 )
-	{	
+	{
 		info->uc->file_as_sample = 1;
 	}
 	else if (strcmp(name, "dummy") == 0 || strcmp(name, "d" ) == 0 )
@@ -616,7 +618,7 @@ static int check_command_line_options(int argc, char *argv[])
 	Usage(argv[0]);
 	return 0;
     }
-    
+
 /* Get options */
     nerr = 0;
 #ifdef HAVE_GETOPT_LONG
@@ -645,7 +647,7 @@ static int check_command_line_options(int argc, char *argv[])
 	    nerr += set_option(option, optarg);
 	    break;
 	}
-	
+
     }
     if (optind > argc)
 	nerr++;
@@ -670,7 +672,7 @@ static int check_command_line_options(int argc, char *argv[])
        }
 	}
 
-    if(!nerr) 
+    if(!nerr)
 		return 1;
 	return 0;
 }
@@ -679,7 +681,7 @@ static void print_license()
 {
 	veejay_msg(VEEJAY_MSG_INFO,
 	    "Veejay -<|Classic +|>- %s Copyright (C) Niels Elburg and others",VERSION);
-	veejay_msg(VEEJAY_MSG_INFO,    
+	veejay_msg(VEEJAY_MSG_INFO,
 		"Build for %s/%s arch %s on %s",
 	    BUILD_OS,
 	    BUILD_KERNEL,
@@ -689,12 +691,12 @@ static void print_license()
 	veejay_msg(VEEJAY_MSG_INFO,
 	    "This software is subject to the GNU GENERAL PUBLIC LICENSE");
 
-	veejay_msg(VEEJAY_MSG_INFO,    
+	veejay_msg(VEEJAY_MSG_INFO,
 		"Veejay comes with ABSOLUTELY NO WARRANTY; this is free software and");
-	
+
 	veejay_msg(VEEJAY_MSG_INFO,
 		"you are welcome to redistribute it under certain conditions.");
-	
+
 	veejay_msg(VEEJAY_MSG_INFO,
 	    "The license must be included in the (source) package (COPYING)");
 
@@ -708,7 +710,7 @@ static void print_license()
 static void donothing(int sig)
 {
 	vj_lock(info);
-	veejay_handle_signal( info, sig );	
+	veejay_handle_signal( info, sig );
 	vj_unlock(info);
 }
 
@@ -719,14 +721,14 @@ static void	sigsegfault_handler(void) {
 	sigst.sa_flags = SA_SIGINFO | SA_ONESHOT;
 	sigst.sa_sigaction = veejay_backtrace_handler;
 
-	if( sigaction(SIGSEGV, &sigst, NULL) == - 1) 
+	if( sigaction(SIGSEGV, &sigst, NULL) == - 1)
 		veejay_msg(0,"sigaction");
 }
 
 int main(int argc, char **argv)
 {
 	video_playback_setup *settings;
-	 
+
    	sigset_t allsignals;
    	struct sigaction action;
 	struct timespec req;
@@ -737,13 +739,13 @@ int main(int argc, char **argv)
 	vj_mem_init();
 
 	vevo_strict_init();
-	
+
 	info = veejay_malloc();
 	if (!info) {
 		vj_mem_threaded_stop();
 		return 1;
 	}
-	
+
    	settings = (video_playback_setup *) info->settings;
 
 	if(!check_command_line_options(argc, argv))
@@ -754,13 +756,13 @@ int main(int argc, char **argv)
 
 	print_license();
 
-	
+
    	if(info->dump)
  	{
 		veejay_set_colors(0);
 		vj_event_init(NULL);
 		vj_effect_initialize(720,576,0);
-		vj_osc_allocate(VJ_PORT+2);	
+		vj_osc_allocate(VJ_PORT+2);
 		vj_event_dump();
 		vj_effect_dump();
 			fprintf(stdout, "Environment variables:\n\tSDL_VIDEO_HWACCEL\t\tSet to 1 to use SDL video hardware accel (default=on)\n\tVEEJAY_PERFORMANCE\t\tSet to \"quality\" or \"fastest\" (default is fastest)\n\tVEEJAY_AUTO_SCALE_PIXELS\tSet to 1 to convert between CCIR 601 and JPEG automatically (default=dont care)\n\tVEEJAY_INTERPOLATE_CHROMA\tSet to 1 if you wish to interpolate every chroma sample when scaling (default=0)\n\tVEEJAY_SDL_KEY_REPEAT_INTERVAL\tinterval of key pressed to repeat while pressed down.\n\tVEEJAY_PLAYBACK_CACHE\t\tSample cache size in MB\n\tVEEJAY_SDL_KEY_REPEAT_DELAY\tDelay key repeat in ms\n\tVEEJAY_FULLSCREEN\t\tStart in fullscreen (1) or windowed (0) mode\n\tVEEJAY_SCREEN_GEOMETRY\t\tSpecifiy a geometry for veejay to position the video window.\n\tVEEJAY_SCREEN_SIZE\t\tSize of video window, defaults to full screen size.\n\tVEEJAY_RUN_MODE\t\t\tRun in \"classic\" (352x288 Dummy) or default (720x576). \n");
@@ -798,7 +800,7 @@ int main(int argc, char **argv)
 	for( i = 1; i < NSIG; i ++ )
 		if( sigismember( &(settings->signal_set), i ))
 			sigaction( i, &action, 0 );
-	
+
 	char *mem_func = get_memcpy_descr();
 	if(mem_func)
 	{
@@ -824,7 +826,7 @@ int main(int argc, char **argv)
 		NULL,
 		live,
 	    ta	)< 0)
-	{	
+	{
 		veejay_msg(VEEJAY_MSG_ERROR, "Cannot start veejay");
 		main_ret = 1;
 		return main_ret;
@@ -843,20 +845,20 @@ int main(int argc, char **argv)
 		goto VEEJAY_MAIN_EXIT;
 	}
 
-	
+
 	veejay_msg(VEEJAY_MSG_DEBUG, "Started playback");
 
 	int current_state = LAVPLAY_STATE_PLAYING;
 
 	req.tv_sec = 0;
-	req.tv_nsec = 4000 * 1000; 
+	req.tv_nsec = 4000 * 1000;
 
 	while( 1 ) { //@ until your PC stops working
-		
-		clock_nanosleep( CLOCK_REALTIME, 0, &req, NULL );
+
+		clock_nanosleep( SYNC_CLOCK, 0, &req, NULL );
 
 		current_state = veejay_get_state(info);
-		
+
 		if( current_state == LAVPLAY_STATE_STOP )
 			break;
 	}
@@ -865,7 +867,7 @@ int main(int argc, char **argv)
 
 
 VEEJAY_MAIN_EXIT:
-	veejay_busy(info);			
+	veejay_busy(info);
 	veejay_free(info);
 	veejay_destroy_msg_ring();
 	vj_mem_destroy();

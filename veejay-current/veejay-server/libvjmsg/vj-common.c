@@ -1,4 +1,4 @@
-/* 
+/*
  * Linux VeeJay
  *
  * Copyright(C)2002-2010 Niels Elburg <nwelburg@gmail.com>
@@ -70,7 +70,7 @@ static int _debug_level = 0;
 static int _color_level = 1;
 static int _no_msg = 0;
 
-#define MAX_LINES 100 
+#define MAX_LINES 100
 typedef struct
 {
 	char *msg[MAX_LINES];
@@ -127,10 +127,10 @@ static void addr2line_unw( unw_word_t addr, char*file, size_t len, int *line )
 void 	veejay_print_backtrace()
 {
 	char name[512];
-	unw_cursor_t cursor; 
+	unw_cursor_t cursor;
 	unw_context_t uc;
 	unw_word_t ip, sp, offp;
-	
+
 	unw_getcontext( &uc );
 	unw_init_local( &cursor, &uc );
 
@@ -161,19 +161,16 @@ void	veejay_print_backtrace()
 	s = backtrace( space, 100 );
 	strings = backtrace_symbols(space,s);
 
-	for( i = 0; i < s ; i ++ ) 
+	for( i = 0; i < s ; i ++ )
 		veejay_msg(VEEJAY_MSG_ERROR, "%s", strings[i] );
 
 }
 #endif
-void	veejay_backtrace_handler(int n , void *dist, void *x)
+void	veejay_backtrace_handler(int n, siginfo_t *dist, void *x)
 {
 	switch(n) {
 		case SIGSEGV:
-			veejay_msg(VEEJAY_MSG_ERROR,"Found Gremlins in your system."); //@ Suggested by Matthijs
-			veejay_msg(VEEJAY_MSG_WARNING, "No fresh ale found in the fridge."); //@
-			veejay_msg(VEEJAY_MSG_INFO, "Running with sub-atomic precision..."); //@
-
+			veejay_msg(VEEJAY_MSG_ERROR, "Received SIGSEGV. Stack trace:");
 			veejay_print_backtrace();
 			break;
 		default:
@@ -181,8 +178,7 @@ void	veejay_backtrace_handler(int n , void *dist, void *x)
 			break;
 	}
 
-	//@ Bye
-	veejay_msg(VEEJAY_MSG_ERROR, "Bugs compromised the system.");
+	veejay_msg(VEEJAY_MSG_ERROR, "Exiting due to signal.");
 
 	report_bug();
 
@@ -226,7 +222,7 @@ void veejay_silent()
 
 int veejay_is_silent()
 {
-	if(_no_msg) return 1;          
+	if(_no_msg) return 1;
 	return 0;
 }
 
@@ -293,7 +289,7 @@ char	*veejay_msg_ringfetch()
 	return line;
 }
 
-static inline void veejay_msg_prnt(const char *line, const char *format, FILE *out, 
+static inline void veejay_msg_prnt(const char *line, const char *format, FILE *out,
 			          const char *prefix, const char *end )
 {
 	if( msg_ring_enabled == 0 ) {
@@ -442,7 +438,7 @@ void    report_bug(void)
 	veejay_msg(VEEJAY_MSG_WARNING, "If you compiled it yourself, please include information about your system.");
 /*
 	veejay_msg(VEEJAY_MSG_WARNING, "Dumping core file to: core.%d",getpid() );
-	
+
 	char cmd[128];
 	memset(cmd,0,sizeof(cmd));
 	sprintf(cmd, "generate-core-file");
@@ -458,7 +454,7 @@ void    report_bug(void)
 		veejay_msg(VEEJAY_MSG_WARNING, "Done!");
 		veejay_msg(VEEJAY_MSG_INFO, "Please bzip2 and upload the coredump somewhere and tell us where to find it!");
 	}
-	*/	
+	*/
 
 }
 

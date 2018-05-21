@@ -1,5 +1,5 @@
 /* veejay - Linux VeeJay
- * 	     (C) 2002-2004 Niels Elburg <nwelburg@gmail.com> 
+ * 	     (C) 2002-2004 Niels Elburg <nwelburg@gmail.com>
  *
  *
  * This program is free software; you can redistribute it and/or modify
@@ -22,7 +22,7 @@
 #include <stdarg.h>
 #include "vj-lib.h"
 
-typedef struct 
+typedef struct
 {
 	char **files;
 	char *working_dir;
@@ -68,5 +68,7 @@ void	vj_get_yuv444_template(VJFrame *src, int w, int h);
 int	verify_working_dir();
 
 void	free_media_files( veejay_t *info, filelist_t *fl );
+
+#define SYNC_CLOCK	CLOCK_MONOTONIC
 
 #endif

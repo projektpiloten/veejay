@@ -47,6 +47,9 @@ extern "C" {
 #define ERR_TOO_MANY_INPUT_CHANNELS           8
 #define ERR_PORT_NAME_INPUT_CHANNEL_MISMATCH  9
 
+#define SYNC_CLOCK	CLOCK_MONOTONIC
+
+
 enum status_enum { PLAYING, PAUSED, STOPPED, CLOSED, RESET };
 enum pos_enum    { BYTES, MILLISECONDS };
 
@@ -139,7 +142,7 @@ enum JACK_PORT_CONNECTION_MODE
 };
 
 /* set the mode for port connections */
-/* defaults to CONNECT_ALL */ 
+/* defaults to CONNECT_ALL */
 void JACK_SetPortConnectionMode(enum JACK_PORT_CONNECTION_MODE mode);
 
 long JACK_OutputStatus(int deviceID,long *sec, long *usec);
