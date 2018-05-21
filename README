@@ -1,4 +1,5 @@
-This is veejay from http://code.dyne.org/veejay/ with a record function added
+This is veejay from http://code.dyne.org/veejay/ with a record function that works (for me). Ctrl+R records 
+the performance, as seen on-screen, to a file.
 
 
 
