@@ -1,4 +1,4 @@
-/* 
+/*
  * Linux VeeJay
  *
  * Copyright(C)2002-2004 Niels Elburg <nwelburg@gmail.com>
@@ -50,7 +50,7 @@ long vj_get_timer()
 {
     struct timeval tv;
     gettimeofday(&tv, 0);
-    return ((tv.tv_sec & 1000000) + tv.tv_usec);
+    return tv.tv_sec * 1000000 + tv.tv_usec;
 }
 
 unsigned	int	vj_stamp()
@@ -108,20 +108,20 @@ static	char	*relative_path(filelist_t *filelist, const char *node)
 
 static int	is_usable_file( filelist_t *filelist, const char *node, const char *filename )
 {
-	if(!node) 
+	if(!node)
 		return 0;
 
 	struct stat l;
 	veejay_memset(&l,0,sizeof(struct stat));
 	if( lstat( node, &l) < 0 )
 		return 0;
-	
+
 	if( S_ISLNK( l.st_mode )) {
 		veejay_memset(&l,0,sizeof(struct stat));
 		stat(node, &l);
 		return 1;
 	}
-	
+
 	if( S_ISDIR( l.st_mode ) ) {
 		return 1;
 	}
@@ -139,7 +139,7 @@ static int	is_usable_file( filelist_t *filelist, const char *node, const char *f
 }
 
 static int	dir_selector( const struct dirent *dir )
-{	
+{
 	return 1;
 }
 
@@ -197,9 +197,9 @@ filelist_t *find_media_files( veejay_t *info )
 	}
 
 	filelist_t *fl = (filelist_t*) vj_malloc(sizeof(filelist_t));
-	fl->files      = (char**) vj_calloc(sizeof(char*) * 1024 ); 
+	fl->files      = (char**) vj_calloc(sizeof(char*) * 1024 );
 	fl->max_files  = 1024;
-	fl->num_files  = 0;	
+	fl->num_files  = 0;
 	fl->working_dir = vj_strdup(working_dir);
 
 	int res = find_files( fl, wd );
@@ -225,17 +225,17 @@ int vj_perform_take_bg(veejay_t *info, VJFrame *frame, int pass)
 			n += vj_effect_prepare( frame, VJ_IMAGE_EFFECT_CHAMELEON );
 			if(n > 0 )
 				return 1;
-		}	
+		}
 		if(frame->ssm == 0) {
 			n += vj_effect_prepare( frame, VJ_IMAGE_EFFECT_BGSUBTRACT );
 			n += vj_effect_prepare( frame, VJ_VIDEO_EFFECT_DIFF );
-			n += vj_effect_prepare( frame, VJ_IMAGE_EFFECT_MOTIONMAP );	
+			n += vj_effect_prepare( frame, VJ_IMAGE_EFFECT_MOTIONMAP );
 			n += vj_effect_prepare( frame, VJ_IMAGE_EFFECT_CONTOUR );
 			if( n > 0 )
 				return 1;
 		}
 
-		if( frame->ssm == 0 ) 
+		if( frame->ssm == 0 )
 		{
 			chroma_supersample( info->settings->sample_mode,frame,frame->data );
 			n += vj_effect_prepare( frame, VJ_VIDEO_EFFECT_CHAMBLEND );
@@ -249,7 +249,7 @@ int vj_perform_take_bg(veejay_t *info, VJFrame *frame, int pass)
 		if(frame->ssm == 0) {
 			n += vj_effect_prepare( frame, VJ_IMAGE_EFFECT_BGSUBTRACT );
 			n += vj_effect_prepare( frame, VJ_VIDEO_EFFECT_DIFF );
-			n += vj_effect_prepare( frame, VJ_IMAGE_EFFECT_MOTIONMAP );	
+			n += vj_effect_prepare( frame, VJ_IMAGE_EFFECT_MOTIONMAP );
 			n += vj_effect_prepare( frame, VJ_IMAGE_EFFECT_CONTOUR );
 			return 0;
 		}
@@ -284,7 +284,7 @@ int vj_perform_screenshot2(veejay_t * info, uint8_t ** src)
 	tmp.data[2] = tmp.data[1] + tmp.len + tmp.uv_len;
 
 	tmp.format = PIX_FMT_YUVJ420P;
-	
+
 	VJFrame *srci = yuv_yuv_template( src[0],src[1],src[2], info->video_output_width,
 					info->video_output_height , PIX_FMT_YUVJ422P);
 
@@ -297,19 +297,19 @@ int vj_perform_screenshot2(veejay_t * info, uint8_t ** src)
 	tmp.data[0] = src[0];
 	tmp.data[1] = src[1];
 	tmp.data[2] = src[2];
-    }	
+    }
 
-	if(info->uc->filename == NULL) 
+	if(info->uc->filename == NULL)
 	{
-		info->uc->filename = (char*) malloc(sizeof(char) * 12); 
+		info->uc->filename = (char*) malloc(sizeof(char) * 12);
 		sprintf(info->uc->filename, "%06d.jpg", info->settings->current_frame_num );
 	}
     frame = fopen(info->uc->filename, "wb");
 
     if (frame)
-    {	
+    {
     	jpeg_size = encode_jpeg_raw(jpeg_buff, (65535*10), 100,
-				settings->dct_method,  
+				settings->dct_method,
 				info->current_edit_list->video_inter,0,
 				info->video_output_width,
 				info->video_output_height,
@@ -318,7 +318,7 @@ int vj_perform_screenshot2(veejay_t * info, uint8_t ** src)
 
    	 res = fwrite(jpeg_buff, jpeg_size, 1, frame);
    	 fclose(frame);
-    	 if(res) 
+    	 if(res)
 		veejay_msg(VEEJAY_MSG_INFO, "Dumped frame to %s", info->uc->filename);
     }
 
@@ -350,7 +350,7 @@ int	veejay_create_temp_file(const char *prefix, char *dst)
 	*/
 
 	sprintf(dst,
-		"%s_%02d%02d%02d_%02d%02d%02d",		
+		"%s_%02d%02d%02d_%02d%02d%02d",
 		prefix,
 		today->tm_mday,
 		today->tm_mon,
@@ -396,7 +396,7 @@ void	vj_get_yuv_template(VJFrame *src, int w, int h, int fmt)
 {
 	src->width = w;
 	src->height = h;
-	
+
 	src->format = get_ffmpeg_pixfmt( fmt );
 
 	if(fmt == FMT_420||fmt == FMT_420F)
@@ -446,7 +446,7 @@ static int	possible_veejay_file( const char *file )
 {
 	if( strstr( file , ".edl" ) || strstr( file, ".EDL" ) ||
 		strstr( file, ".sl" ) || strstr(file, ".SL" ) ||
-		strstr( file, ".cfg" ) || strstr(file, ".CFG" ) ||	
+		strstr( file, ".cfg" ) || strstr(file, ".CFG" ) ||
 		strstr( file, ".avi" ) || strstr(file, ".mov" ) )
 		return 1;
 	return 0;
