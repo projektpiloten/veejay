@@ -1672,16 +1672,19 @@ static int vj_tag_start_encoder(vj_tag *tag, int format, long nframes)
 		{
 			case ENCODER_YUV420:
 			case ENCODER_YUV420F:
-			tag->encoder_max_size = 2048 + tmp + (tmp/4) + (tmp/4);break;
+				tag->encoder_max_size = 2048 + tmp + (tmp/4) + (tmp/4);
+				break;
 			case ENCODER_YUV422:
 			case ENCODER_YUV422F:
 			case ENCODER_YUV4MPEG:
-			tag->encoder_max_size = 2048 + tmp + (tmp/2) + (tmp/2);break;
+				tag->encoder_max_size = 2048 + tmp + (tmp/2) + (tmp/2);
+				break;
 			case ENCODER_LZO:
-			tag->encoder_max_size = tmp * 3; break;
+				tag->encoder_max_size = tmp * 3;
+				break;
 			default:
-			tag->encoder_max_size = ( 4 * 65535 );
-			break;
+				tag->encoder_max_size = ( 4 * 65535 );
+				break;
 		}
 
 	if(tag->encoder_total_frames_recorded == 0)
@@ -1702,18 +1705,19 @@ static int vj_tag_start_encoder(vj_tag *tag, int format, long nframes)
 		return 0;
 	}
 
-	if( cformat != 'S' ) {
+	if( cformat != 'S' )
+	{
 		tag->encoder_file = lav_open_output_file(
-			tag->encoder_destination,
-			cformat,
-			_tag_info->effect_frame1->width,
-			_tag_info->effect_frame1->height,
-			0,
-			_tag_info->effect_frame1->fps,
-			0,
-			0,
-			0
-		);
+		                        tag->encoder_destination,
+		                        cformat,
+		                        _tag_info->effect_frame1->width,
+		                        _tag_info->effect_frame1->height,
+		                        0,
+		                        _tag_info->effect_frame1->fps,
+		                        0,
+		                        0,
+		                        0
+		                    );
 
 
 		if(!tag->encoder_file)
@@ -1728,13 +1732,13 @@ static int vj_tag_start_encoder(vj_tag *tag, int format, long nframes)
 	}
 
 	veejay_msg(VEEJAY_MSG_INFO, "Recording to file [%s] %ldx%ld@%2.2f %d/%d/%d >%09ld<",
-		    tag->encoder_destination,
-		    _tag_info->effect_frame1->width,
-		    _tag_info->effect_frame1->height,
-		    (float) _tag_info->effect_frame1->fps,
-			0,0,0,
-			(long)( tag->encoder_frames_to_record)
-		);
+	           tag->encoder_destination,
+	           _tag_info->effect_frame1->width,
+	           _tag_info->effect_frame1->height,
+	           (float) _tag_info->effect_frame1->fps,
+	           0,0,0,
+	           (long)( tag->encoder_frames_to_record)
+	          );
 
 
 	tag->encoder_width = _tag_info->effect_frame1->width;
@@ -1744,27 +1748,28 @@ static int vj_tag_start_encoder(vj_tag *tag, int format, long nframes)
 }
 
 
-int vj_tag_init_encoder(int t1, char *filename, int format, long nframes ) {
-  vj_tag *tag = vj_tag_get(t1);
-  if(!tag) return 0;
+int vj_tag_init_encoder(int t1, char *filename, int format, long nframes )
+{
+	vj_tag *tag = vj_tag_get(t1);
+	if(!tag) return 0;
 
-  if(tag->encoder_active)
-  {
-	veejay_msg(VEEJAY_MSG_ERROR, "Already recording Stream %d to [%s]",t1, tag->encoder_destination);
-  return 0;
-  }
+	if(tag->encoder_active)
+	{
+		veejay_msg(VEEJAY_MSG_ERROR, "Already recording Stream %d to [%s]",t1, tag->encoder_destination);
+		return 0;
+	}
 
-  if(!vj_tag_try_filename( t1,filename,format))
-  {
-	return 0;
-  }
-  if(nframes <= 0)
-  {
-	veejay_msg(VEEJAY_MSG_ERROR, "It makes no sense to encode for %ld frames", nframes);
-	return 0;
-  }
+	if(!vj_tag_try_filename( t1,filename,format))
+	{
+		return 0;
+	}
+	if(nframes <= 0)
+	{
+		veejay_msg(VEEJAY_MSG_ERROR, "It makes no sense to encode for %ld frames", nframes);
+		return 0;
+	}
 
-  return vj_tag_start_encoder( tag,format, nframes );
+	return vj_tag_start_encoder( tag,format, nframes );
 }
 
 /*
@@ -2900,33 +2905,36 @@ int	vj_tag_var(int t1, int *type, int *fader, int *fx_sta , int *rec_sta, int *a
 		  1 if recording is to finish because encoder_frames_to_record has been reached;
 		  0 otherwise
 */
-int vj_tag_record_frame(int t1, uint8_t *buffer[4], uint8_t *abuff, int audio_size,int pixel_format) {
-   vj_tag *tag = vj_tag_get(t1);
-   int buf_len = 0;
-   if(!tag) return -1;
+int vj_tag_record_frame(int t1, uint8_t *buffer[4], uint8_t *abuff, int audio_size, int pixel_format)
+{
+	vj_tag *tag = vj_tag_get(t1);
+	int buf_len = 0;
+	if(!tag) return -1;
 
-   if(!tag->encoder_active) return -1;
+	if(!tag->encoder_active) return -1;
 
 	long nframe = tag->encoder_frames_recorded;
 
-   buf_len =	vj_avcodec_encode_frame( tag->encoder, nframe, tag->encoder_format, buffer, vj_avcodec_get_buf(tag->encoder), tag->encoder_max_size, pixel_format);
-   if(buf_len <= 0 ) {
-	veejay_msg(VEEJAY_MSG_ERROR, "unable to encode frame" );
-   	return -1;
-   }
+	buf_len = vj_avcodec_encode_frame( tag->encoder, nframe, tag->encoder_format, buffer, vj_avcodec_get_buf(tag->encoder), tag->encoder_max_size, pixel_format);
+	if(buf_len <= 0 )
+	{
+		veejay_msg(VEEJAY_MSG_ERROR, "unable to encode frame" );
+		return -1;
+	}
 
-   	if(tag->encoder_file ) {
+	if(tag->encoder_file )
+	{
 		if(lav_write_frame(tag->encoder_file, vj_avcodec_get_buf(tag->encoder), buf_len,1))
 		{
 			veejay_msg(VEEJAY_MSG_ERROR, "writing frame, giving up :[%s]", lav_strerror());
-				return -1;
+			return -1;
 		}
 
 		if(audio_size > 0)
 		{
 			if(lav_write_audio(tag->encoder_file, abuff, audio_size))
 			{
-		 	    veejay_msg(VEEJAY_MSG_ERROR, "Error writing output audio [%s]",lav_strerror());
+				veejay_msg(VEEJAY_MSG_ERROR, "Error writing output audio [%s]",lav_strerror());
 			}
 		}
 	}

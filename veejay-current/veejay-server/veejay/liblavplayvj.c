@@ -1672,8 +1672,7 @@ static int veejay_mjpeg_set_playback_rate(veejay_t * info, float video_fps, int 
 
 static void veejay_mjpeg_queue_buf(veejay_t * info,int frame,   int frame_periods)
 {
-    video_playback_setup *settings =
-	(video_playback_setup *) info->settings;
+    video_playback_setup *settings = (video_playback_setup *) info->settings;
     /* mark this buffer as playable and tell the software playback thread to wake up if it sleeps */
     pthread_mutex_lock(&(settings->valid_mutex));
     settings->valid[frame] = frame_periods;

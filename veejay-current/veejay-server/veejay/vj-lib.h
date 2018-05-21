@@ -200,11 +200,16 @@ typedef struct {
     int auto_mute;
 	int pace_correction;
 	/* 'wysiwyg' recording */
-	struct prec_t
+	struct perf_rec
 	{
 		int recording;				/* currently recording? */
 		uint64_t start;				/* time when recording started, in nanoseconds */
 		uint32_t frames_recorded;	/* how many frames have been written to video */
+		void *encoder;				/* opaque vj_encoder */
+		lav_file_t *encoder_file;	/* file handle */
+		char filename[PATH_MAX];	/* name of last file */
+		int encoder_max_size;		/* max memory for encoded frame (or something...) */
+		int format;					/* vj_event_get_video_format() at start of recording */
 	} prec;
 } video_playback_setup;
 
@@ -261,28 +266,28 @@ typedef struct {
 } user_control;
 
 typedef struct {
-    int video_output_width;		/* width of the SDL playback window in case of software playback */
+    int video_output_width;			/* width of the SDL playback window in case of software playback */
     int video_output_height;		/* height of the SDL playback window in case of software playback */
-    int double_factor;		/* while playing, duplicate each frame double_factor times */
+    int double_factor;				/* while playing, duplicate each frame double_factor times */
     int preserve_pathnames;
-    int audio;			/* [0-1] Whether to play audio, 0 = no, 1 = yes */
-    int continuous;		/* [0-1] 0 = quit when the video has been played, 1 = continue cycle */
-    int sync_correction;	/* [0-1] Whether to enable sync correction, 0 = no, 1 = yes */
-    int sync_skip_frames;	/* [0-1] If video is behind audio: 1 = skip video, 0 = insert audio */
-    int sync_ins_frames;	/* [0-1] If video is ahead of audio: 1 = insert video, 0 = skip audio */
+    int audio;						/* [0-1] Whether to play audio, 0 = no, 1 = yes */
+    int continuous;					/* [0-1] 0 = quit when the video has been played, 1 = continue cycle */
+    int sync_correction;			/* [0-1] Whether to enable sync correction, 0 = no, 1 = yes */
+    int sync_skip_frames;			/* [0-1] If video is behind audio: 1 = skip video, 0 = insert audio */
+    int sync_ins_frames;			/* [0-1] If video is ahead of audio: 1 = insert video, 0 = skip audio */
     int auto_deinterlace;
     int load_action_file;
     editlist *current_edit_list;
-    editlist *edit_list;		/* the playing editlist */
-    editlist *plain_editlist;	/* editlist loaded from command line */
-	user_control *uc;		/* user control */
+    editlist *edit_list;			/* the playing editlist */
+    editlist *plain_editlist;		/* editlist loaded from command line */
+	user_control *uc;				/* user control */
     void *osc;
     VJFrame *plugin_frame;
     VJFrameInfo *plugin_frame_info;
     VJFrame *effect_frame1;
 	VJFrame *effect_frame2;
 	VJFrameInfo *effect_frame_info;
-    vjp_kf *effect_info;	/* effect dependent variables */
+    vjp_kf *effect_info;			/* effect dependent variables */
 #ifdef HAVE_DIRECTFB
     void *dfb;
 #endif
@@ -292,27 +297,27 @@ typedef struct {
 #endif
     void	*y4m;
 #ifdef HAVE_SDL
-    vj_sdl **sdl;		/* array of SDL windows */
+    vj_sdl **sdl;					/* array of SDL windows */
 #endif
 	/* vj_yuv *output_stream; */	/* output stream for dumping video */	/* XXXXXXXX never referenced? */
     void *vloopback; // vloopback output
-    /* void *video_out_scaler; */ /* referenced nowhere */
-    /* int render_now; */        /* write RGB */	/* referenced nowhere */
+    /* void *video_out_scaler; */ 	/* referenced nowhere */
+    /* int render_now; */        	/* write RGB */	/* referenced nowhere */
     /* int render_continous; */		/* referenced nowhere */
     char action_file[2][1024];
     char y4m_file[1024];
     int stream_outformat;
-    /* int stream_enabled; */	/* referenced nowhere */
+    /* int stream_enabled; */		/* referenced nowhere */
     int last_sample_id;
     int last_tag_id;
     int nstreams;
     int sfd;
-    vj_server *vjs[4]; /* 0=cmd, 1 = sta, 2 = mcast, 3 = msg */
+    vj_server *vjs[4]; 				/* 0=cmd, 1 = sta, 2 = mcast, 3 = msg */
     int net;
     int render_entry;
     int render_continue;
     video_playback_setup *settings;	/* private info - don't touch :-) (type UNKNOWN) */
-    int real_fps;			/* no, those are not FPS -- those are MILLISECONDS spent in some portion of code */
+    int real_fps;					/* no, those are not FPS -- those are MILLISECONDS spent in some portion of code */
     int dump;
     int verbose;
     int no_bezerk;

@@ -7838,16 +7838,12 @@ void vj_event_misc_start_rec(void *ptr, const char format[], va_list ap)
 	veejay_t *v= (veejay_t*)ptr;
 	if(v->settings->prec.recording)
 		vj_event_misc_stop_rec(ptr, "", ap);
-	v->settings->prec.start = (uint64_t)v->settings->lastframe_completion.tv_sec*1000000 + v->settings->lastframe_completion.tv_nsec/1000;
-	v->settings->prec.frames_recorded = 0;
-	v->settings->prec.recording = 1;
-	veejay_msg(VEEJAY_MSG_INFO, "Recording.");
+	vj_perform_prec_start(v);
 }
 void vj_event_misc_stop_rec(void *ptr, const char format[], va_list ap)
 {
 	veejay_t *v= (veejay_t*)ptr;
-	/* XXXX todo: sync and close files, etc */
-	v->settings->prec.recording = 0;
+	vj_perform_prec_stop(v);
 	veejay_msg(VEEJAY_MSG_INFO, "Stopped Recording.");
 }
 

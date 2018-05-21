@@ -2738,25 +2738,126 @@ void vj_perform_record_stop(veejay_t *info)
 
 }
 
-/* performance recording - record what you see to disk */
-void vj_perform_prec(veejay_t *info)
+
+void vj_perform_prec_stop(veejay_t *v)
 {
-	static uint64_t prevframe;
+	struct perf_rec *prec = &v->settings->prec;
+	if(prec->encoder_file)
+		lav_close(prec->encoder_file);
+	if(prec->encoder)
+		vj_avcodec_stop(prec->encoder, prec->format);
+	prec->recording = 0;
+}
 
-	video_playback_setup *s= info->settings;
-	uint64_t lastframe = (uint64_t)s->lastframe_completion.tv_sec*1000000 + s->lastframe_completion.tv_nsec/1000;
-	int nframes = 0;
+static const char *vj_perform_prec_get_filename(veejay_t *v, const char *fname, int size)
+{
+	snprintf(fname, size, "rec.dat");	// XXXXXX do something sensible here -- probably date & time based
+	return fname;
+}
 
-	while(s->prec.start + (uint64_t)s->prec.frames_recorded * s->usec_per_frame < lastframe)
+/* get an estimation of the maximum encoder_size... basically copypasta from vj_tag.c */
+static int vj_perform_prec_max_encoder_size(veejay_t *v, int format)
+{
+	int len = v->effect_frame1->len;
+	int maxsz = 0;
+
+	if(format==ENCODER_DVVIDEO)
+		maxsz = ( v->video_output_height == 480 ? 120000: 144000);
+	else
+		switch(format)
+		{
+			case ENCODER_YUV420:
+			case ENCODER_YUV420F:
+				maxsz = 2048 + len + (len/4) + (len/4);
+				break;
+			case ENCODER_YUV422:
+			case ENCODER_YUV422F:
+			case ENCODER_YUV4MPEG:
+				maxsz = 2048 + len + (len/2) + (len/2);
+				break;
+			case ENCODER_LZO:
+				maxsz = len * 3;
+				break;
+			default:
+				maxsz = ( 4 * 65535 );
+				break;
+		}
+
+	return maxsz * 2;	// just to be on the safe side... o.O
+}
+
+void vj_perform_prec_start(veejay_t *v)
+{
+	video_playback_setup *s = v->settings;
+	struct perf_rec *prec = &s->prec;
+
+	prec->format = vj_event_get_video_format();
+	char cformat = vj_avcodec_find_lav(prec->format);
+
+	vj_perform_prec_get_filename(v, prec->filename, sizeof(prec->filename));
+	prec->encoder = vj_avcodec_start(v->effect_frame1, prec->format, prec->filename);
+	if(!prec->encoder)
 	{
-		/* XXXXXXXXX write the frame here */
-		nframes++;
-		s->prec.frames_recorded++;
+		veejay_msg(VEEJAY_MSG_ERROR, "vj_avcodec_start() failed, try another encoding format");
+		return;
 	}
-	veejay_msg(VEEJAY_MSG_INFO, "output_fps %5.2f, usec_per_frame %4lu, current_frame %4d, %d frames recorded, lastframe %8lu, framesrec usec %lu, frametime %lu (~%5.2f calculated fps)",
-		s->output_fps, s->usec_per_frame, s->current_frame_num, nframes, lastframe - s->prec.start, (uint64_t)s->prec.frames_recorded * s->usec_per_frame, lastframe-prevframe, 1000000.0/(lastframe-prevframe));
 
-	prevframe = lastframe;
+	prec->encoder_file = lav_open_output_file(prec->filename, cformat, v->effect_frame1->width, v->effect_frame1->height, 0, s->output_fps, 0, 0, 0);
+	if(!prec->encoder_file)
+	{
+		veejay_msg(VEEJAY_MSG_ERROR, "Cannot write to %s (No permissions?)", prec->filename);
+		if(prec->encoder)
+			vj_avcodec_close_encoder(prec->encoder);
+		prec->encoder = NULL;
+		prec->recording = 0;
+	}
+
+	prec->encoder_max_size = vj_perform_prec_max_encoder_size(v, prec->format);
+
+	veejay_msg(VEEJAY_MSG_INFO, "Recording to file %s, %ldx%ld, %2.2f fps", prec->filename, v->effect_frame1->width, v->effect_frame1->height, s->output_fps);
+
+	s->prec.start = (uint64_t)s->lastframe_completion.tv_sec*1000000 + s->lastframe_completion.tv_nsec/1000;
+	s->prec.frames_recorded = 0;
+	s->prec.recording = 1;
+}
+
+/* performance recording - record what you see to disk */
+void vj_perform_prec(veejay_t *v)
+{
+	video_playback_setup *s= v->settings;
+	struct perf_rec *prec = &s->prec;
+	uint8_t *frame[4];
+
+	frame[0] = primary_buffer[0]->Y;
+	frame[1] = primary_buffer[0]->Cb;
+	frame[2] = primary_buffer[0]->Cr;
+	frame[3] = NULL;
+
+	int buf_len = vj_avcodec_encode_frame(prec->encoder, prec->frames_recorded, prec->format, frame,
+						vj_avcodec_get_buf(prec->encoder), prec->encoder_max_size, v->pixel_format);
+	if(buf_len <= 0 )
+	{
+		veejay_msg(VEEJAY_MSG_ERROR, "unable to encode frame" );
+		return;
+	}
+
+	if(lav_write_frame(prec->encoder_file, vj_avcodec_get_buf(prec->encoder), buf_len, 1))
+	{
+		veejay_msg(VEEJAY_MSG_ERROR, "writing frame, giving up :[%s]", lav_strerror());
+		return;
+	}
+
+/*
+	if(audio_size > 0)
+	{
+		if(lav_write_audio(tag->encoder_file, abuff, audio_size))
+		{
+			veejay_msg(VEEJAY_MSG_ERROR, "Error writing output audio [%s]",lav_strerror());
+		}
+	}
+*/
+
+	prec->frames_recorded++;
 }
 
 
