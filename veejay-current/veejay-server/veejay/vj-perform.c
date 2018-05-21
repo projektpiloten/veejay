@@ -2841,23 +2841,24 @@ void vj_perform_prec(veejay_t *v)
 		return;
 	}
 
-	if(lav_write_frame(prec->encoder_file, vj_avcodec_get_buf(prec->encoder), buf_len, 1))
-	{
-		veejay_msg(VEEJAY_MSG_ERROR, "writing frame, giving up :[%s]", lav_strerror());
-		return;
-	}
-
-/*
-	if(audio_size > 0)
-	{
-		if(lav_write_audio(tag->encoder_file, abuff, audio_size))
+	int64_t recdelta;
+	int frames_recorded = 0;
+	do {
+		if(lav_write_frame(prec->encoder_file, vj_avcodec_get_buf(prec->encoder), buf_len, 1))
 		{
-			veejay_msg(VEEJAY_MSG_ERROR, "Error writing output audio [%s]",lav_strerror());
+			veejay_msg(VEEJAY_MSG_ERROR, "error writing frame: %s", lav_strerror());
+			return;
 		}
-	}
-*/
 
-	prec->frames_recorded++;
+		uint64_t usec_recorded = prec->frames_recorded * s->usec_per_frame;
+		uint64_t usec_now = (uint64_t)s->lastframe_completion.tv_sec*1000000 + s->lastframe_completion.tv_nsec/1000;
+		uint64_t usec_since_rec_start = usec_now - prec->start;
+		recdelta = usec_since_rec_start - usec_recorded;
+		prec->frames_recorded++;
+		frames_recorded++;
+	} while(recdelta > s->usec_per_frame);
+
+	veejay_msg(VEEJAY_MSG_DEBUG, "%d frames recorded, rec delta: %+5.2fms", frames_recorded, recdelta / 1000.);
 }
 
 
