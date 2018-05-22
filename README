@@ -1,7 +1,26 @@
-This is veejay from http://code.dyne.org/veejay/ with a record function that works (mostly / for me). 
-Ctrl+R records the performance, as seen on-screen, to a file.
+This is veejay from http://code.dyne.org/veejay/ with some changes to veejay-server:
 
-
+ * A record function that works (mostly / for me). Ctrl+R records the performance, 
+   as seen on-screen, to a file. This should be roughly synchronized to real time, 
+   regardless of any frame drops, which appear as repeated frames in the recording. 
+   VIMS_REC_START / VIMS_REC_STOP, vj_perform_prec()
+ * Fixed broken frame rate synchronization, which would yield FPS that differed a 
+   lot from the configured values, e.g., 33fps when 25fps was configured. Now, frame
+   time is measured in microseconds, and frames are queued in lock step: The
+   point in time to queue the next frame increases in monotonic steps, and if one 
+   frame is generated too late (or too early), the next one will catch up. 
+   veejay_mjpeg_software_frame_sync()
+ * Changed overall clock source from CLOCK_REALTIME, which is affected by 
+   discontinuous jumps, to CLOCK_MONOTONIC. (See man clock_gettime)
+   Todo: use CLOCK_MONOTONIC_RAW on Linux, which should be even better
+ * Some plugin function was defined static, which made the link step fail
+ * FEMMS, apparently an AMD-specific instruction, was used on my Intel machine.
+   Commented this out somewhere in the configure stuff, not properly removed though.
+ * Quit event: Ctrl+Q and window manager close event exits veejay-server.
+ * Lots of formatting, which probably can't be carried over to the newer
+   https://github.com/c0ntrol/veejay repo -- which I only realized exists AFTER
+   I made those changes. :/
+ 
 
     10x0            0x     x10x0x10x0x10x   10x0x10x0x10x0        x0x1         x0x1       10x0        x0x1
   0x10x0            0x0x   x10x0x10x0x10x   10x0x10x0x10x0        x0x1       10x0x10x      10x0x1    10x0x1
