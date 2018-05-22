@@ -203,7 +203,7 @@ typedef struct {
 	struct perf_rec
 	{
 		int recording;				/* currently recording? */
-		uint64_t start;				/* time when recording started, in nanoseconds */
+		uint64_t start;				/* time when recording started, in microseconds */
 		uint32_t frames_recorded;	/* how many frames have been written to video */
 		void *encoder;				/* opaque vj_encoder */
 		lav_file_t *encoder_file;	/* file handle */
